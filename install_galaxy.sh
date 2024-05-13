@@ -3,7 +3,7 @@
 echo "Starting Galaxy installation..."
 
 # Define Galaxy installation directory
-galaxy_dir="/path/to/galaxy"
+galaxy_dir="~/documents/galaxy"
 
 # Ensure current shell directory does not change for the user unexpectedly
 pushd .

@@ -11,6 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up the Galaxy environment
+      - name: Install Galaxy and dependencies on macOS
         run: bash setup.sh
 
