@@ -1,33 +1,25 @@
 #!/bin/bash
 echo "Checking for Python 3..."
 
-if brew list python &>/dev/null; then
-    echo "Python 3 is already installed. Checking for updates..."
-    brew upgrade python
+# Determine the latest Python 3 version
+latest_python3_version=$(pyenv install -l | grep -E '^  3\.[0-9]+\.[0-9]+$' | tail -1 | tr -d '[:space:]')
+
+# Install the latest Python 3 version
+if pyenv versions | grep -q $latest_python3_version; then
+    echo "Python 3 ($latest_python3_version) is already installed. Checking for updates..."
+    pyenv install --skip-existing $latest_python3_version
 else
-    echo "Installing Python 3..."
-    brew install python
+    echo "Installing Python 3 ($latest_python3_version)..."
+    pyenv install $latest_python3_version
+    pyenv global $latest_python3_version
+    echo "Python 3 ($latest_python3_version) installed successfully."
 fi
 
-echo "Verifying Python 3 is working..."
-if python3 --version &>/dev/null; then
+# Verify Python installation
+if python --version &>/dev/null; then
+    echo "Verifying Python 3 is working..."
     echo "Python 3 setup complete."
 else
     echo "Error: Python 3 installation failed."
-    exit 1
-fi
-
-echo "Checking PATH for Python 3..."
-if [[ ":$PATH:" != *":/usr/local/opt/python/libexec/bin:"* ]]; then
-    echo "Configuring PATH for Python 3..."
-    echo 'export PATH="/usr/local/opt/python/libexec/bin:$PATH"' >> ~/.zshrc
-    export PATH="/usr/local/opt/python/libexec/bin:$PATH"
-fi
-
-echo "Verifying PATH configuration..."
-if [[ ":$PATH:" == *":/usr/local/opt/python/libexec/bin:"* ]]; then
-    echo "PATH configuration verified successfully."
-else
-    echo "Error: PATH configuration failed."
     exit 1
 fi

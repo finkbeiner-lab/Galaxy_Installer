@@ -1,0 +1,16 @@
+name: Setup Galaxy Environment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up the Galaxy environment
+        run: bash setup.sh
+

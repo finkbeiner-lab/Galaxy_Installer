@@ -16,5 +16,6 @@ if [ -d "$HOME/.oh-my-zsh" ]; then
     echo "Oh My Zsh setup complete."
 else
     echo "Error: Oh My Zsh installation failed."
+    popd
     exit 1
 fi
