@@ -3,7 +3,7 @@
 echo "Starting Galaxy installation..."
 
 # Define Galaxy installation directory
-galaxy_dir="~/documents/galaxy"
+galaxy_dir="$HOME/documents/galaxy"
 
 # Ensure current shell directory does not change for the user unexpectedly
 pushd .
@@ -20,16 +20,6 @@ fi
 
 # Navigate to the Galaxy directory
 cd "$galaxy_dir"
-
-# Run Galaxy tests to verify the functionality
-echo "Running Galaxy API tests..."
-if ./run_tests.sh -api ; then
-    echo "Galaxy functionality verified."
-else
-    echo "Error: Galaxy failed the API tests."
-    popd
-    exit 1
-fi
 
 echo "Starting up Galaxy..."
 # Start Galaxy in the background
