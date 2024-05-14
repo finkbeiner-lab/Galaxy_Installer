@@ -23,12 +23,12 @@ cd "$galaxy_dir"
 
 echo "Starting up Galaxy..."
 # Start Galaxy in the background and redirect output to a log file
-./run.sh --daemon &> galaxy.log &
+./run.sh --daemon &
 
 # Function to check if Galaxy is up by querying the main page
 check_galaxy() {
     echo "Checking if Galaxy is up..."
-    for i in {1..60}; do  # Check for up to 60 seconds
+    for i in {1..600}; do  # Check for up to 10 minutes
         if curl -s http://localhost:8080 | grep -q 'Galaxy'; then
             return 0
         fi
