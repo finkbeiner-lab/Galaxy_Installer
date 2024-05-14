@@ -25,7 +25,8 @@ echo "Starting up Galaxy..."
 # Start Galaxy in the background
 nohup ./run.sh --daemon &> install_galaxy.log &
 nohup_pid=$!
-tail -f install_galaxy.log &
+tail -F install_galaxy.log &
+tail_pid=$!
 sleep 5
 
 # Function to check if Galaxy is up by querying the main page
@@ -47,13 +48,14 @@ shutdown_galaxy() {
     ./run.sh --stop-daemon
     sleep 5 # Give Galaxy some time to shut down gracefully
     kill $nohup_pid &> /dev/null # No zombies.
+    sync # Dump any remaining log lines from tail to the console
+    kill $tail_pid
     return 0
 }
 
 # Function to exit from error
 exit_install_galaxy() {
     shutdown_galaxy
-    sync # Dump any remaining log lines from tail to the console
     popd
     exit 1
 }
