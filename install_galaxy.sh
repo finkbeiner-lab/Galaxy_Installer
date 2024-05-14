@@ -18,6 +18,14 @@ else
     git pull origin master
 fi
 
+# Set up Node.js environment using nodeenv; This seems required for GitHub Actions macOS boxes, but not macOS locally...
+if ! command -v nodeenv &>/dev/null; then
+    echo "Installing nodeenv..."
+    pip install nodeenv
+fi
+echo "Setting up Node.js environment..."
+nodeenv -p
+
 # Navigate to the Galaxy directory
 cd "$galaxy_dir"
 
