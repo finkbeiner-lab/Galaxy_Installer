@@ -22,13 +22,16 @@ fi
 cd "$galaxy_dir"
 
 echo "Starting up Galaxy..."
-# Start Galaxy in the background and redirect output to a log file
-./run.sh --daemon &
+# Start Galaxy in the background
+nohup ./run.sh --daemon &
+tail -F nohup.out &
+sleep 5
 
 # Function to check if Galaxy is up by querying the main page
 check_galaxy() {
     echo "Checking if Galaxy is up..."
     for i in {1..600}; do  # Check for up to 10 minutes
+        echo "Attempting to reach Galaxy server..."
         if curl -s http://localhost:8080 | grep -q 'Galaxy'; then
             return 0
         fi
@@ -43,13 +46,16 @@ if check_galaxy; then
 else
     echo "Error: Galaxy server did not start successfully."
     ./run.sh --stop-daemon
+    rm nohup.out
     popd
     exit 1
 fi
 
-# Optionally stop Galaxy if only testing installation
 echo "Shutting down Galaxy..."
 ./run.sh --stop-daemon
+
+# Clean
+rm nohup.out
 
 # Return to the original directory without changing the user's working directory
 popd
