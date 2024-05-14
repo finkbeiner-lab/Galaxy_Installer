@@ -32,8 +32,8 @@ sleep 5
 # Function to check if Galaxy is up by querying the main page
 check_galaxy() {
     echo "Checking if Galaxy is up..."
-    for i in {1..300}; do  # Check for up to 10 minutes
-        echo "Attempting to reach Galaxy server... $i/300."
+    for i in {1..600}; do  # Check for up to 20 minutes
+        echo "Attempting to reach Galaxy server... $i/600."
         if curl -s http://localhost:8080 | grep -q 'Galaxy'; then
             return 0
         fi
