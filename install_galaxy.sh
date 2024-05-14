@@ -31,8 +31,8 @@ sleep 5
 # Function to check if Galaxy is up by querying the main page
 check_galaxy() {
     echo "Checking if Galaxy is up..."
-    for i in {1..300}; do  # Check for up to 10 minutes
-        echo "Attempting to reach Galaxy server..."
+    for i in {1..90}; do  # Check for up to 3 minutes
+        echo "Attempting to reach Galaxy server... $i/90."
         if curl -s http://localhost:8080 | grep -q 'Galaxy'; then
             return 0
         fi
@@ -50,15 +50,23 @@ shutdown_galaxy() {
     return 0
 }
 
+# Function to exit from error
+exit_install_galaxy() {
+    shutdown_galaxy
+    sync # Dump any remaining log lines from tail to the console
+    popd
+    exit 1
+}
+
+# Intercept ctrl-c (SIGINT)
+trap exit_install_galaxy SIGINT
+
 # Verify Galaxy startup
 if check_galaxy; then
     echo "Galaxy setup complete. Server is up and responsive."
 else
     echo "☹️ Error: Galaxy server did not start successfully.  Take a peak at $galaxy_dir/install_galaxy.log"
-    shutdown_galaxy
-    sync # Dump any remaining log lines from tail to the console
-    popd
-    exit 1
+    exit_install_galaxy
 fi
 
 shutdown_galaxy
