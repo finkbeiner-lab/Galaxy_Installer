@@ -12,16 +12,21 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache dependencies
+      - name: Cache pip dependencies
         uses: actions/cache@v2
         with:
-          path: |
-            ~/.cache/pip
-            /path/to/galaxy/.venv
+          path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Cache pyenv downloads
+        uses: actions/cache@v2
+        with:
+          path: ~/.pyenv/cache
+          key: ${{ runner.os }}-pyenv-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pyenv-
       - name: Install Galaxy and dependencies on macOS
         run: bash setup.sh
 
