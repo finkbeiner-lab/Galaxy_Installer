@@ -3,7 +3,7 @@
 echo "Starting Galaxy installation..."
 
 # Define Galaxy installation directory
-galaxy_dir="$HOME/documents/galaxy"
+galaxy_dir="$HOME/galaxy"
 
 # Ensure current shell directory does not change for the user unexpectedly
 pushd .
@@ -18,20 +18,12 @@ else
     git pull origin master
 fi
 
-# Set up Node.js environment using nodeenv; This seems required for GitHub Actions macOS boxes, but not macOS locally...
-if ! command -v nodeenv &>/dev/null; then
-    echo "Installing nodeenv..."
-    pip install nodeenv
-fi
-echo "Setting up Node.js environment..."
-nodeenv -p
-
 # Navigate to the Galaxy directory
 cd "$galaxy_dir"
 
 echo "Starting up Galaxy..."
-# Start Galaxy in the background
-./run.sh --daemon &
+# Start Galaxy in the background and redirect output to a log file
+./run.sh --daemon &> galaxy.log &
 
 # Function to check if Galaxy is up by querying the main page
 check_galaxy() {

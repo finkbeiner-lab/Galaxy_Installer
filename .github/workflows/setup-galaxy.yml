@@ -19,17 +19,17 @@ jobs:
 
       - name: Install GitHub Action Python dependencies into Galaxy's venv
         run: |
-          python3 -m venv .venv
-          source .venv/bin/activate
+          python3 -m venv $HOME/galaxy/.venv
+          source $HOME/galaxy/.venv/bin/activate
           pip install nodeenv
           nodeenv -p
 
       - name: Start node environment, run setup script with Galaxy's venv
         env:
-          GALAXY_VIRTUAL_ENV: .venv
+          GALAXY_VIRTUAL_ENV: $HOME/galaxy/.venv
         run: |
-          source .venv/bin/activate
+          source $HOME/galaxy/.venv/bin/activate
           ./setup.sh
 
       - name: Check logs
-        run: tail -n 1000 /$HOME/Dpcuments/galaxy.log
+        run: tail -n 1000 $HOME/galaxy/galaxy.log
