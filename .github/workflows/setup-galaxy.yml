@@ -12,6 +12,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Galaxy and dependencies on macOS
-        run: bash setup.sh
+      - name: Set up Python for GitHub Action specific dependencies
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
 
+      - name: Install GitHub Action Python dependencies into Galaxy's venv
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install nodeenv
+	  pip install -r requirements.txt
+          nodeenv -p
+
+      - name: Start node environment, run setup script with Galaxy's venv
+        env:
+          GALAXY_VIRTUAL_ENV: .venv
+        run: |
+          source .venv/bin/activate
+          ./setup.sh
+
+      - name: Check logs
+        run: tail -n 1000 /$HOME/Dpcuments/galaxy.log
