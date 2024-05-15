@@ -3,7 +3,8 @@
 echo "Starting Galaxy installation..."
 
 # Define Galaxy installation directory
-galaxy_dir="$HOME/galaxy"
+galaxy_dir="$HOME/gladstone/finkbeinerlab/galaxy"
+echo "Galaxy will be installed in $galaxy_dir"
 
 # Ensure current shell directory does not change for the user unexpectedly
 pushd .
