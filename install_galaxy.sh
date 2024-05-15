@@ -14,9 +14,16 @@ if [ ! -d "$galaxy_dir" ]; then
     echo "Cloning Galaxy repository..."
     git clone https://github.com/galaxyproject/galaxy.git "$galaxy_dir"
 else
-    echo "Galaxy is already installed. Updating to the latest version..."
+    echo "Galaxy is already installed. Attempting to fast-forward to the latest version..."
     cd "$galaxy_dir"
-    git pull origin master
+    git fetch origin
+    if git merge --ff-only origin/master; then
+        echo "Fast-forward successful."
+    else
+        echo "Cannot fast-forward. Your copy of Galaxy has diverged significantly from the offical repository. You'll need to resolve a merge manually, or delete $galaxy_dir and start fresh."
+        popd
+        exit 1
+    fi
 fi
 
 # Navigate to the Galaxy directory
@@ -33,12 +40,12 @@ sleep 5
 # Function to check if Galaxy is up by querying the main page
 check_galaxy() {
     echo "Checking if Galaxy is up..."
-    for i in {1..600}; do  # Check for up to 20 minutes
-        echo "Attempting to reach Galaxy server... $i/600."
+    for i in {1..600}; do  # Check for up to 30 minutes
+        echo "Waiting for Galaxy server to spin up... $i/600."
         if curl -s http://localhost:8080 | grep -q 'Galaxy'; then
             return 0
         fi
-        sleep 2
+        sleep 3
     done
     return 1
 }
