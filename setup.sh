@@ -1,5 +1,9 @@
 #!/bin/bash
-echo "Installing Galaxy and its dependencies on macOS..."
+echo -e "${LOG_PREFIX}Installing Galaxy and its dependencies on macOS..."
+
+# Define a logging prefix with an emoji and colored text
+export LOG_PREFIX="\033[1;34m🔬 [INSTALL GALAXY PROJECT]\033[0m "
+
 
 # Ensure each script is executable
 chmod +x \
@@ -17,7 +21,7 @@ install_tool_shed.sh
 run_script() {
     ./$1
     if [ $? -ne 0 ]; then
-        echo "Error: $1 failed."
+        echo -e "${LOG_PREFIX}Error: $1 failed."
         exit 1
     fi
 }
@@ -33,4 +37,4 @@ run_script install_galaxy.sh
 run_script install_mercurial.sh
 run_script install_tool_shed.sh
 
-echo "Setup completed successfully."
+echo -e "${LOG_PREFIX}Setup completed successfully."
