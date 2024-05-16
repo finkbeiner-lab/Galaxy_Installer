@@ -2,8 +2,8 @@
 
 echo -e "${LOG_PREFIX}Starting Galaxy installation..."
 
-# Define Galaxy installation directory
-galaxy_dir="$HOME/gladstone/finkbeinerlab/galaxy"
+# Define Galaxy installation directory... NOTE! This has to be somewhat short or Galaxy will fail to start supervisord !!
+galaxy_dir="$HOME/galaxy"
 echo -e "${LOG_PREFIX}Galaxy will be installed in $galaxy_dir"
 
 # Ensure current shell directory does not change for the user unexpectedly
