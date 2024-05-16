@@ -47,7 +47,7 @@ fi
 
 echo -e "${LOG_PREFIX}Starting up Galaxy..."
 # Start Galaxy in the background
-nohup ./run.sh --daemon &> install_galaxy.log &
+nohup ./run.sh start &> install_galaxy.log &
 nohup_pid=$!
 tail -F install_galaxy.log &
 tail_pid=$!
@@ -55,9 +55,9 @@ sleep 5
 
 # Function to check if Galaxy is up by querying the main page
 check_galaxy() {
-    echo -e "${LOG_PREFIX}Checking if Galaxy is up..."
+    echo -e "${LOG_PREFIX}Waiting for Galaxy server to spin up. This can take a good while the first time (~20min), and sometimes it looks stuck for a minute or two when it isn't."
     for i in {1..600}; do  # Check for up to 30 minutes
-        echo -e "${LOG_PREFIX}Waiting for Galaxy server to spin up... $i/600."
+        echo -e "${LOG_PREFIX}Waiting for Galaxy server to spin up... $i/600"
         if curl -s http://localhost:8080 | grep -q 'Galaxy'; then
             return 0
         fi
@@ -69,7 +69,7 @@ check_galaxy() {
 # Function to shutdown Galaxy
 shutdown_galaxy() {
     echo -e "${LOG_PREFIX}Shutting down Galaxy..."
-    ./run.sh --stop-daemon
+    ./run.sh stop
     sleep 5 # Give Galaxy some time to shut down gracefully
     kill $nohup_pid &> /dev/null # No zombies.
     sync # Dump any remaining log lines from tail to the console
@@ -91,7 +91,7 @@ trap exit_install_galaxy SIGINT
 if check_galaxy; then
     echo -e "${LOG_PREFIX}Galaxy setup complete. Server is up and responsive."
 else
-    echo -e "${LOG_PREFIX}☹️ Error: Galaxy server did not start successfully.  Take a peak at $galaxy_dir/install_galaxy.log"
+    echo -e "${LOG_PREFIX}☹️ Error: Galaxy server did not start successfully.  Take a peak at $galaxy_dir/install_galaxy.log and $galaxy_dir/galaxy.log"
     exit_install_galaxy
 fi
 
