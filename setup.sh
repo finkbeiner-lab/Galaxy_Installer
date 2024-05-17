@@ -14,7 +14,6 @@ install_oh-my-zsh.sh \
 install_python_3.sh \
 configure_git.sh \
 install_galaxy.sh \
-install_mercurial.sh \
 install_tool_shed.sh
 
 # Function to run a script and check its exit status
@@ -34,7 +33,6 @@ run_script install_oh-my-zsh.sh
 run_script install_python_3.sh
 run_script configure_git.sh
 run_script install_galaxy.sh
-run_script install_mercurial.sh
 run_script install_tool_shed.sh
 
 echo -e "${LOG_PREFIX}Setup completed successfully."
