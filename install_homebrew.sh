@@ -1,18 +1,21 @@
-#!/bin/bash
-echo -e "${LOG_PREFIX}Checking for Homebrew..."
+#! /bin/sh                                                                                                                                         
+source common.sh
+
+log_info "Checking for Homebrew..."
 
 if command -v brew &>/dev/null; then
-    echo -e "${LOG_PREFIX}Homebrew is already installed. Checking for updates..."
+    log_info "Homebrew is already installed. Checking for updates..."
     brew update
 else
-    echo -e "${LOG_PREFIX}Installing Homebrew..."
+    log_info "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-echo -e "${LOG_PREFIX}Verifying Homebrew is working..."
+log_info "Verifying Homebrew is working..."
 if brew --version &>/dev/null; then
-    echo -e "${LOG_PREFIX}Homebrew setup complete."
+    log_info "Homebrew setup complete."
 else
-    echo -e "${LOG_PREFIX}Error: Homebrew installation failed."
+    log_error "Homebrew installation failed."
     exit 1
 fi
+

@@ -1,19 +1,22 @@
-#!/bin/bash
-echo -e "${LOG_PREFIX}Checking for Xcode Command Line Tools..."
+#! /bin/sh                                                                                                                                         
+source common.sh
+
+log_info "Checking for Xcode Command Line Tools..."
 
 if xcode-select -p &>/dev/null; then
-    echo -e "${LOG_PREFIX}Xcode Command Line Tools are already installed. Checking for updates..."
+    log_info "Xcode Command Line Tools are already installed. Checking for updates..."
     # Xcode CLT updates are typically handled through the Mac App Store, so this might be a manual update check.
 else
-    echo -e "${LOG_PREFIX}Installing Xcode Command Line Tools..."
+    log_info "Installing Xcode Command Line Tools..."
     xcode-select --install
 fi
 
-echo -e "${LOG_PREFIX}Verifying Xcode Command Line Tools are working..."
+log_info "Verifying Xcode Command Line Tools are working..."
 # Verification could be simply checking the installation path again or trying a command.
 if xcode-select -p &>/dev/null; then
-    echo -e "${LOG_PREFIX}Xcode Command Line Tools setup complete."
+    log_info "Xcode Command Line Tools setup complete."
 else
-    echo -e "${LOG_PREFIX}Error: Xcode Command Line Tools installation failed."
+    log_error "Xcode Command Line Tools installation failed."
     exit 1
 fi
+
