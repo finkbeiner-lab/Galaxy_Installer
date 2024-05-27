@@ -11,4 +11,8 @@ log_error() {
     echo "\033[0;31m🔬 [ERROR] $1\033[0m" >&2  # Red, to stderr
 }
 
+# Function to play an alert sound
+play_alert_sound() {
+    afplay /System/Library/Sounds/Blow.aiff 2>/dev/null || log_warning "Failed to play alert sound."
+}
 

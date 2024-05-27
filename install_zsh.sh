@@ -45,7 +45,7 @@ current_shell=$(dscl . -read /Users/$USER UserShell | awk '{print $2}')
 zsh_path=$(which zsh)
 if [ "$current_shell" != "$zsh_path" ]; then
     log_info "Your password is required to change your default shell to Zsh. Waiting on user..."
-    say -v karen "Password required."
+    play_alert_sound
     if sudo chsh -s "$zsh_path" "$USER"; then
         log_info "Default shell changed to Zsh."
     else

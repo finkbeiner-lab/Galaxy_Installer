@@ -31,4 +31,4 @@ run_script install_python_3.sh
 run_script install_galaxy.sh
 run_script install_tool_shed.sh
 
-log_info "Setup completed successfully."
+log_info "Setup completed successfully! 🎉🎉🎉"
