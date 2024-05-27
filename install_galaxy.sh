@@ -23,7 +23,7 @@ else
         log_info "Galaxy repository update through fast-forward was successful."
     else
         log_error "Cannot fast-forward. Your copy of Galaxy has diverged significantly from the offical repository. You'll need to resolve a merge manually, or delete $galaxy_dir and start fresh."
-        popd
+        popd &> /dev/null
         exit 1
     fi
 fi
@@ -48,9 +48,9 @@ fi
 
 log_info "Starting up Galaxy..."
 # Start Galaxy in the background
-nohup ./run.sh start &> install_galaxy.log_info &
+nohup ./run.sh start &> install_galaxy.log &
 nohup_pid=$!
-tail -F install_galaxy.log_info &
+tail -F install_galaxy.log &
 tail_pid=$!
 sleep 5
 
@@ -74,7 +74,9 @@ shutdown_galaxy() {
     sleep 5 # Give Galaxy some time to shut down gracefully
     kill $nohup_pid &> /dev/null # No zombies.
     sync # Dump any remaining log_info lines from tail to the console
-    kill $tail_pid
+    kill $tail_pid &> /dev/null # Seriously. No zombies.
+    log_info "Waiting for tail to exit..."
+    wait $tail_pid &> /dev/null
     return 0
 }
 
@@ -92,15 +94,15 @@ trap exit_install_galaxy SIGINT
 if check_galaxy; then
     log_info "Galaxy setup complete. Server is up and responsive."
 else
-    log_error "Galaxy server did not start successfully.  Take a peak at $galaxy_dir/install_galaxy.log_info and $galaxy_dir/galaxy.log_info"
+    log_error "Galaxy server did not start successfully.  Take a peak at $galaxy_dir/install_galaxy.log and $galaxy_dir/galaxy.log"
     exit_install_galaxy
 fi
 
 shutdown_galaxy
 
 log_info "Cleaning up..."
-rm install_galaxy.log_info
+rm install_galaxy.log
 
 # Return to the original directory without changing the user's working directory
-popd
+popd &> /dev/null
 

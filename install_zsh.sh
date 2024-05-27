@@ -40,19 +40,23 @@ else
     exit 1
 fi
 
-# Set Zsh as the default shell if it isn't already
-current_shell=$(dscl . -read /Users/$USER UserShell | awk '{print $2}')
-zsh_path=$(which zsh)
-if [ "$current_shell" != "$zsh_path" ]; then
-    log_info "Your password is required to change your default shell to Zsh. Waiting on user..."
-    play_alert_sound
-    if sudo chsh -s "$zsh_path" "$USER"; then
-        log_info "Default shell changed to Zsh."
+# Set Zsh as the default shell if it isn't already. Skip this if we are in a test runner.
+if [ -z "$CI" ]; then
+    current_shell=$(dscl . -read /Users/$USER UserShell | awk '{print $2}')
+    zsh_path=$(which zsh)
+    if [ "$current_shell" != "$zsh_path" ]; then
+        log_info "Your password is required to change your default shell to Zsh. Waiting on user..."
+        play_alert_sound
+        if sudo chsh -s "$zsh_path" "$USER"; then
+            log_info "Default shell changed to Zsh."
+        else
+            log_error "Failed to change default shell to Zsh."
+            exit 1
+        fi
     else
-        log_error "Failed to change default shell to Zsh."
-        exit 1
+        log_info "Zsh is already the default shell."
     fi
 else
-    log_info "Zsh is already the default shell."
+    log_info "Skipping changing the default shell in automated runner."
 fi
 
