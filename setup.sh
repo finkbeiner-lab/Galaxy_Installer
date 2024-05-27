@@ -1,5 +1,5 @@
 #! /bin/sh
-source common.sh
+source "$(dirname "$0")/common.sh"
 
 # Start the overall clock
 overall_start_time=$(date +%s)

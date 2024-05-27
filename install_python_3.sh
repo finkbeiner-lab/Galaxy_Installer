@@ -1,5 +1,5 @@
 #!/bin/zsh
-source common.sh
+source "$(dirname "$0")/common.sh"
 
 log_info "Checking for Python 3 installation..."
 

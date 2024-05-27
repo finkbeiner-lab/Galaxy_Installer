@@ -1,6 +1,8 @@
 #! /bin/sh
 # Provides a common set of utilities for the other scripts
 
+source "$(dirname "$0")/config.sh"
+
 # Function to log informational messages
 log_info() {
     echo "\033[0;34m🔬 [INSTALL GALAXY PROJECT] $1\033[0m"  # Blue

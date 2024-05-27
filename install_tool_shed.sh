@@ -1,13 +1,13 @@
 #!/bin/zsh
-source common.sh
+source "$(dirname "$0")/common.sh"
 
-# Check if pipx is installed
+# Function to check if pipx is installed
 check_pipx() {
     log_info "Checking if pipx is installed..."
     command -v pipx &>/dev/null
 }
 
-# Install pipx
+# Function to install pipx
 install_pipx() {
     log_info "Installing pipx..."
     brew install pipx
@@ -21,13 +21,13 @@ install_pipx() {
     fi
 }
 
-# Check if Planemo is installed
+# Function to check if Planemo is installed
 check_planemo() {
     log_info "Checking if Planemo is installed..."
     command -v planemo &>/dev/null
 }
 
-# Install Planemo
+# Function to install Planemo
 install_planemo() {
     log_info "Installing Planemo..."
     pipx install planemo

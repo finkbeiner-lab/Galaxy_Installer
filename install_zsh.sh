@@ -1,5 +1,5 @@
 #! /bin/sh                                                                                                                                         
-source common.sh
+source "$(dirname "$0")/common.sh"
 
 log_info "Checking for Zsh..."
 

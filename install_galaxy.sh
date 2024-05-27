@@ -1,35 +1,32 @@
 #!/bin/sh
-source common.sh
+source "$(dirname "$0")/common.sh"
 
 log_info "Starting Galaxy installation..."
-
-# Define Galaxy installation directory... NOTE! This has to be somewhat short or Galaxy will fail to start supervisord !!
-galaxy_dir="$HOME/galaxy"
-log_info "Galaxy will be installed in $galaxy_dir"
+log_info "Galaxy will be installed in $GALAXY_DIR"
 
 # Ensure current shell directory does not change for the user unexpectedly
-pushd .
+pushd . &> /dev/null
 
 # Clone or pull the latest Galaxy
-if [ ! -d "$galaxy_dir" ]; then
+if [ ! -d "$GALAXY_DIR" ]; then
     log_info "Cloning Galaxy repository..."
-    git clone https://github.com/galaxyproject/galaxy.git "$galaxy_dir"
+    git clone https://github.com/galaxyproject/galaxy.git "$GALAXY_DIR"
 else
     log_info "Galaxy is already installed. Attempting to fast-forward to the latest version..."
-    cd "$galaxy_dir"
+    cd "$GALAXY_DIR"
     echo "${LOG_PREFIX}Checking out Galaxy's main branch 'dev' for updating..."
     git checkout dev
     if git pull; then
         log_info "Galaxy repository update through fast-forward was successful."
     else
-        log_error "Cannot fast-forward. Your copy of Galaxy has diverged significantly from the offical repository. You'll need to resolve a merge manually, or delete $galaxy_dir and start fresh."
+        log_error "Cannot fast-forward. Your copy of Galaxy has diverged significantly from the offical repository. You'll need to resolve a merge manually, or delete $GALAXY_DIR and start fresh."
         popd &> /dev/null
         exit 1
     fi
 fi
 
 # Navigate to the Galaxy directory
-cd "$galaxy_dir"
+cd "$GALAXY_DIR"
 
 # Get the latest tagged release matching the pattern vXXXX.XXXX.XXXX, this filters out "dev" releases and other random tags
 log_info "Finding latest release..."
@@ -41,7 +38,7 @@ log_info "Checking out latest release..."
 if git checkout "$latest_tag"; then
     log_info "Checked out latest release: $latest_tag"
 else
-    log_error "Unable to check out the latest release. Unsure how to continue. You'll need to resolve manually or delete $galaxy_dir and start fresh."
+    log_error "Unable to check out the latest release. Unsure how to continue. You'll need to resolve manually or delete $GALAXY_DIR and start fresh."
     popd
     exit 1
 fi
@@ -94,7 +91,7 @@ trap exit_install_galaxy SIGINT
 if check_galaxy; then
     log_info "Galaxy setup complete. Server is up and responsive."
 else
-    log_error "Galaxy server did not start successfully.  Take a peak at $galaxy_dir/install_galaxy.log and $galaxy_dir/galaxy.log"
+    log_error "Galaxy server did not start successfully.  Take a peak at $GALAXY_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
     exit_install_galaxy
 fi
 
