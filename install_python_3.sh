@@ -31,11 +31,25 @@ else
 fi
 
 # Verify Python installation
+log_info "Verifying Python 3 is working..."
 if python3 --version &>/dev/null; then
-    log_info "Verifying Python 3 is working..."
-    log_info "Python 3 setup complete."
+    log_info "Python 3 installation was successful."
 else
     log_error "Python 3 installation failed."
     exit 1
 fi
+
+# Install pipx to allow us to install stand-alone python utilities and have them available across all version of python
+log_info "Installing pipx..."
+brew install pipx
+if brew list pipx &>/dev/null; then
+    pipx ensurepath &> /dev/null # pipx outputs this scary looking warning every time, so we're going to sadly swallow this output
+    source ~/.zshrc
+    log_info "pipx installed and PATH updated."
+else
+    log_error "Failed to install pipx."
+    exit 1
+fi
+
+log_info "Python 3 setup complete."
 
