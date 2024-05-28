@@ -13,8 +13,8 @@ chmod_scripts() {
     install_zsh.sh \
     install_oh-my-zsh.sh \
     install_python_3.sh \
-    install_galaxy.sh \
-    install_tool_shed.sh
+    install_tool_shed.sh \
+    install_galaxy.sh
 }
 
 # Make scripts executable
@@ -60,8 +60,8 @@ run_script install_homebrew.sh
 run_script install_zsh.sh
 run_script install_oh-my-zsh.sh
 run_script install_python_3.sh
+run script install_tool_shed.sh
 run_script install_galaxy.sh
-run_script install_tool_shed.sh
 
 # End the overall clock
 end_time=$(date +%s)

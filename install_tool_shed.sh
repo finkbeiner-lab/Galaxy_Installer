@@ -1,26 +1,6 @@
 #!/bin/zsh
 source "$(dirname "$0")/common.sh"
 
-# Function to check if pipx is installed
-check_pipx() {
-    log_info "Checking if pipx is installed..."
-    command -v pipx &>/dev/null
-}
-
-# Function to install pipx
-install_pipx() {
-    log_info "Installing pipx..."
-    brew install pipx
-    if brew list pipx &>/dev/null; then
-        pipx ensurepath
-        source ~/.zshrc
-        log_info "pipx installed and PATH updated."
-    else
-        log_error "Failed to install pipx."
-        exit 1
-    fi
-}
-
 # Function to check if Planemo is installed
 check_planemo() {
     log_info "Checking if Planemo is installed..."
@@ -39,21 +19,43 @@ install_planemo() {
     fi
 }
 
-# Main script execution
-log_info "Installing the Finkbiener Tool Shed into Galaxy (https://github.com/finkbeiner-lab/Galaxy_Tool_Shed)...."
+# Function to download the Finkbeiner ToolShed
+# NOTE! The Finkbeiner ToolShed is currently a public repository.
+# This is mostly do to the complexity of managing public/private key pairs automatically without messing up what folks might have already set up.
+# I took a stab at it, and it doesn't appear intractable, just challenging. In the future, we should probably give it a shot so we can make our ToolShed private.
+get_tool_shed_repo() {
+    if [ ! -d "$TOOL_SHED_DIR" ]; then
+        log_info "Cloning the Finkbeiner ToolShed repository into $TOOL_SHED_DIR..."
+        git clone https://github.com/finkbeiner-lab/Galaxy_Tool_Shed.git "$TOOL_SHED_DIR"
+    else
+        log_info "Updating the Finkbeiner Tool Shed repository..."
+        cd "$TOOL_SHED_DIR" && git pull
+    fi
+}
 
-# Install pipx if not installed
-if check_pipx; then
-    log_info "pipx is already installed."
-else
-    install_pipx
-fi
+# Function to install or update Planemo
+install_or_update_planemo() {
+    if check_planemo; then
+        log_info "Planemo is already installed."
+        log_info "Updating Planemo..."
+        if pipx upgrade planemo; then
+            log_info "Planemo up-to-date."
+        else
+            log_error "Failed to update Planemo."
+        fi
+    else
+        install_planemo
+    fi
+}
 
-# Install Planemo if not installed
-if check_planemo; then
-    log_info "Planemo is already installed."
-else
-    install_planemo
-fi
+######## Script Start ########
+log_info "Getting the Finkbiener ToolShed and its dependencies (https://github.com/finkbeiner-lab/Galaxy_Tool_Shed)...."
 
-log_info "Finkbiener Tool Shed installation successful."
+# Get Planemo
+install_or_update_planemo
+
+# Download or update our ToolShed
+get_tool_shed_repo
+
+log_info "Finkbiener ToolShed now available with dependencies installed and up-to-date.."
+

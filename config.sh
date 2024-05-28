@@ -3,4 +3,5 @@
 
 # Define Galaxy installation directory... NOTE! This path has to be short or Galaxy will fail to start supervisord !!
 export GALAXY_DIR="$HOME/galaxy"
+export TOOL_SHED_DIR="$HOME/finkbeiner_tool_shed"
 
