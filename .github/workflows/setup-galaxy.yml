@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  schedule:
+    # Also runs at noon on the seventh day of every month
+    - cron: '12 0 7 * *'
 
 jobs:
   setup:
