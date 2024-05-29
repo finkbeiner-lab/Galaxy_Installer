@@ -9,7 +9,7 @@ pull_repo() {
     else
         log_info "Galaxy is already installed. Attempting to fast-forward to the latest version..."
         cd "$GALAXY_DIR"
-        echo "${LOG_PREFIX}Checking out Galaxy's main branch 'dev' for updating..."
+        log_info "Checking out Galaxy's main branch 'dev' for updating..."
         git checkout dev
         if git pull; then
             log_info "Galaxy repository update through fast-forward was successful."
@@ -25,10 +25,16 @@ pull_repo() {
 checkout_latest_release() {
     log_info "Finding latest release..."
     git fetch --tags
-    local latest_tag=$(git tag -l | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' | sort -V | tail -n 1)
+    latest_tag=$(git tag -l | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+
+    if [ -z "$latest_tag" ]; then
+        log_error "No valid release tags found. Unsure how to continue."
+        popd &> /dev/null
+        exit 1
+    fi
 
     # Check out the latest tagged release
-    log_info "Checking out latest release..."
+    log_info "Checking out latest release version: $latest_tag..."
     if git checkout "$latest_tag"; then
         log_info "Checked out latest release: $latest_tag"
     else
