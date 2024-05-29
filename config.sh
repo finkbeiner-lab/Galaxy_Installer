@@ -18,5 +18,5 @@ export TOOL_SHED_DIR="$HOME/finkbeiner_tool_shed"
 export TOOL_SHED_NAME="Finkbeiner"
 
 # The location this installer will use to download and run its scripts
-export GALAXY_INSTALLER_TMP_DIR=/tmp/galaxy_installer"
+export GALAXY_INSTALLER_TMP_DIR="/tmp/galaxy_installer"
 
