@@ -7,7 +7,8 @@ check_planemo() {
     command -v planemo &>/dev/null
 }
 
-# Function to install Planemo
+# Function to install Planemo, a tool for creating and testing new tools for the ToolShed
+# We might not need this in remote instances of Galaxy, and perhaps not the pipx dependency, but this script doesn't detect different environments yet
 install_planemo() {
     log_info "Installing Planemo..."
     pipx install planemo
@@ -19,16 +20,13 @@ install_planemo() {
     fi
 }
 
-# Function to download the Finkbeiner ToolShed
-# NOTE! The Finkbeiner ToolShed is currently a public repository.
-# This is mostly do to the complexity of managing public/private key pairs automatically without messing up what folks might have already set up.
-# I took a stab at it, and it doesn't appear intractable, just challenging. In the future, we should probably give it a shot so we can make our ToolShed private.
+# Function to download our ToolShed
 get_tool_shed_repo() {
     if [ ! -d "$TOOL_SHED_DIR" ]; then
-        log_info "Cloning the Finkbeiner ToolShed repository into $TOOL_SHED_DIR..."
-        git clone https://github.com/finkbeiner-lab/Galaxy_Tool_Shed.git "$TOOL_SHED_DIR"
+        log_info "Cloning the $TOOL_SHED_NAME ToolShed repository into $TOOL_SHED_DIR..."
+        git clone "$TOOL_SHED_REPO" "$TOOL_SHED_DIR"
     else
-        log_info "Updating the Finkbeiner Tool Shed repository..."
+        log_info "Updating the $TOOL_SHED_NAME ToolShed repository..."
         cd "$TOOL_SHED_DIR" && git pull
     fi
 }
@@ -49,7 +47,7 @@ install_or_update_planemo() {
 }
 
 ######## Script Start ########
-log_info "Getting the Finkbiener ToolShed and its dependencies (https://github.com/finkbeiner-lab/Galaxy_Tool_Shed)...."
+log_info "Getting the $TOOL_SHED_NAME ToolShed and its dependencies ($TOOL_SHED_REPO)...."
 
 # Get Planemo
 install_or_update_planemo
@@ -57,5 +55,5 @@ install_or_update_planemo
 # Download or update our ToolShed
 get_tool_shed_repo
 
-log_info "Finkbiener ToolShed now available with dependencies installed and up-to-date.."
+log_info "$TOOL_SHED_NAME ToolShed now available with dependencies installed and up-to-date.."
 
