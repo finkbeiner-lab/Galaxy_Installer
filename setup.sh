@@ -1,6 +1,9 @@
 #! /bin/sh
 source "$(dirname "$0")/common.sh"
 
+# This script (setup.sh) is the overall runner for all of the intallations.
+# There are some implicit depedencies in the ordering of the scripts. But the entire chain is idempotent.
+
 # Start the overall clock
 overall_start_time=$(date +%s)
 log_info "Installing Galaxy and its dependencies on macOS..."
