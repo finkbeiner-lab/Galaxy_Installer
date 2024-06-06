@@ -21,6 +21,7 @@ chmod_scripts() {
     install_miniconda.sh \
     add_conda_to_galaxy_config.sh \
     install_tool_shed.sh \
+    clone_galaxy_repo.sh \
     install_galaxy.sh
 }
 
@@ -72,6 +73,7 @@ run_script install_pipx.sh
 run_script install_miniconda.sh
 run_script add_conda_to_galaxy_config.sh
 run_script install_tool_shed.sh
+run_script clone_galaxy_repo.sh
 run_script install_galaxy.sh
 
 # End the overall clock

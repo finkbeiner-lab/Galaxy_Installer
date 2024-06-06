@@ -1,58 +1,12 @@
 #!/bin/sh
 source "$(dirname "$0")/common.sh"
 
-# Function to clone down the Galaxy repo or pull from the latest release
-pull_repo() {
-    if [ ! -d "$GALAXY_DIR" ]; then
-        log_info "Cloning Galaxy repository..."
-        git clone https://github.com/galaxyproject/galaxy.git "$GALAXY_DIR"
-    else
-        log_info "Galaxy is already installed. Attempting to fast-forward to the latest version..."
-        cd "$GALAXY_DIR"
-        log_info "Checking out Galaxy's main branch 'dev' for updating..."
-        git checkout dev
-        if git pull; then
-            log_info "Galaxy repository update through fast-forward was successful."
-        else
-            log_error "Cannot fast-forward. Your copy of Galaxy has diverged significantly from the official repository. You'll need to resolve a merge manually, or delete $GALAXY_DIR and start fresh."
-            popd &> /dev/null
-            exit 1
-        fi
-    fi
-}
-
-# Function to get the latest tagged release matching the pattern v00.00.00, this filters out "dev" releases and other random tags
-checkout_latest_release() {
-    log_info "Finding latest release..."
-    cd "$GALAXY_DIR"
-    git fetch --tags
-
-    # Find the latest tag matching the pattern
-    latest_tag=$(git tag -l | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
-
-    # Log the found tag
-    log_info "Latest tag found: $latest_tag"
-
-    if [ -z "$latest_tag" ]; then
-        log_error "No valid release tags found. Unsure how to continue."
-        popd &> /dev/null
-        exit 1
-    fi
-
-    # Check out the latest tagged release
-    log_info "Checking out latest release version: $latest_tag..."
-    if git checkout "$latest_tag"; then
-        log_info "Checked out latest release: $latest_tag"
-    else
-        log_error "Unable to check out the latest release. Unsure how to continue. You'll need to resolve manually or delete $GALAXY_DIR and start fresh."
-        popd &> /dev/null
-        exit 1
-    fi
-}
-
 # Function to start Galaxy in the background
 start_galaxy() {
     log_info "Starting up Galaxy..."
+    # Last chance to override our previous traps with ones that contain a Galaxy shutdown step
+    trap 'after_galaxy_started_trap_handler SIGINT' SIGINT
+    trap 'after_galaxy_started_trap_handler SIGTERM' SIGTERM 
     # We start Galaxy in a nohup instead of using it's own daemon so we can grab the pid and kill it. Galaxy's own pidfile isn't showing up, and we were getting zombies.
     nohup ./run.sh start &> "$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log" &
     nohup_pid=$! # Global
@@ -75,41 +29,46 @@ check_galaxy() {
         log_info "Waiting for Galaxy server to spin up... $i/600"
         sleep 3
     done
-    exit_install_galaxy_with_error
+    log_error "Galaxy server did not start successfully. Take a peak at $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
+    shutdown_galaxy_with_error
 }
 
+# Function to install the tools from our ToolShed into Galaxy using Planemo
+install_tools() {
+    log_info "Discovering and installing tools from $TOOL_SHED_DIR/ into Galaxy $GALAXY_DIR/..."
+    cd "$TOOL_SHED_DIR"
 
-#TODO: This method relies on a ToolShed server being available. We might use Planemo instead...
-install_tools_into_galaxy_instance() {
-    local api_key="$GALAXY_API_KEY"  # Replace with your Galaxy admin API key
+    log_info "Running planemo ci_find_tools to discover tools..."
+    tool_files=$(planemo ci_find_tools .)
 
-    # Example of installing a tool from the Tool Shed into the Galaxy instance
-    local tool_shed_url="https://toolshed.g2.bx.psu.edu"
-    local repository_owner="finkbeiner-lab"
-    local repository_name="Galaxy_Tool_Shed"
+    for tool_file in $tool_files; do
+        tool_dir=$(dirname "$tool_file")
+        log_info "Preparing tool in directory $tool_dir..."
+        
+        # Assuming .shed.yml files are correctly placed, you don't need to create or upload to a Tool Shed
+        if [ ! -f "$tool_dir/.shed.yml" ]; then
+            log_error "Missing .shed.yml in $tool_dir"
+            shutdown_galaxy_with_error
+        fi
+    done
 
-    log_info "Installing tools into Galaxy instance..."
-
-    # Install the repository using Galaxy API
-    curl -X POST \
-        -H "Content-Type: application/json" \
-        -H "x-api-key: $api_key" \
-        -d '{
-            "tool_shed_url": "'"$tool_shed_url"'",
-            "name": "'"$repository_name"'",
-            "owner": "'"$repository_owner"'",
-            "install_tool_dependencies": true,
-            "install_repository_dependencies": true,
-            "install_resolver_dependencies": true
-        }' \
-        "$galaxy_instance_url/api/tool_shed_repositories/install_repositories"
-
-    if [ $? -eq 0 ]; then
-        log_info "Tools installed successfully into Galaxy instance."
-    else
-        log_error "Failed to install tools into Galaxy instance."
-        return 1
+    log_info "Serving tools from the local directory to Galaxy..."
+    if ! planemo shed_serve --galaxy_root "$GALAXY_DIR" --shed_target local; then
+        log_error "Failed to serve tools from the local directory to Galaxy"
+        shutdown_galaxy_with_error
     fi
+}
+
+# Function to verify if tools are installed correctly
+verify_tools() {
+    local tool_ids=($(fetch_tool_ids))
+    for tool_id in "${tool_ids[@]}"; do
+        if ! planemo tool_test --galaxy_root "$GALAXY_DIR" --installed --tool_id "$tool_id"; then
+            log_error "Tool $tool_id failed verification."
+            shutdown_galaxy_with_error
+        fi
+    done
+    log_info "All tools verified successfully."
 }
 
 # Function to cleanly shutdown Galaxy
@@ -133,21 +92,31 @@ shutdown_galaxy() {
     return 0
 }
 
-# Function for handling trapped control signals
-trap_handler() {
-    log_info "🛑🛑🛑🛑 Caught signal $1. Shutting down now. 🛑🛑🛑🛑"
-    shutdown_galaxy                                                                                                                                                                           
-    popd &> /dev/null
-    exit 0
+# Function to do final cleanup and exit with code sent in
+exit_installer() {
+    trap - ERR # Deregister our trap handler as a best practice
+    exit $1
 }
 
-# Function to exit from error
-exit_install_galaxy_with_error() {
-    log_error "Galaxy server did not start successfully. Take a peak at $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
+# Function to exit with success
+shutdown_galaxy_with_success() {
     shutdown_galaxy
-    popd &> /dev/null
-    exit 1
+    cleanup
+    exit_installer 0
 }
+
+# Function to exit from error, no cleanup here so the user can look at the logs
+shutdown_galaxy_with_error() {
+    shutdown_galaxy
+    exit_installer 1
+}
+
+# Function for handling trapped control signals
+trap_handler() {
+    log_info "🛑🛑🛑🛑 Caught signal $1. Shutting down now... 🛑🛑🛑🛑"
+    shutdown_galaxy_with_error # We're not looking to continue forward to other scripts, so exit 1
+}
+
 
 # Function for any cleanup
 cleanup() {
@@ -155,26 +124,16 @@ cleanup() {
     rm -f $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log
 }
 
+###############################
 ######## Script Start ########
-log_info "Starting Galaxy installation..."
-log_info "Galaxy will be installed in $GALAXY_DIR"
+##############################
+
+
 
 # Intercept ctrl-c and other quit signals to attempt to cleanly stop. Zombie Galaxy is really annoying and easy to end up with.
 # This should be done before continuing on to make any changes that affect the user
 trap 'trap_handler SIGINT' SIGINT
-trap 'trap_handler SIGTERM' SIGTERM
-
-# Ensure current shell directory does not change for the user unexpectedly
-pushd . &> /dev/null
-
-# Navigate to the Galaxy directory
-cd "$GALAXY_DIR"
-
-# Pull or fast-forward repo
-pull_repo
-
-# Find the latest release tag and then check it out
-checkout_latest_release
+trap 'trap_handler SIGTERM' SIGTERM 
 
 # Create a place for our logfile
 ensure_tmp_directory_exists
@@ -187,23 +146,16 @@ start_galaxy
 check_galaxy
 
 # Install our tools from our ToolShed repo
-#install_tools_into_galaxy_instance
+install_tools
 
 # Test a tool from our toolshed
-# TODO
+verify_tools
 
 # Check that Galaxy survived
 check_galaxy
 
-# Shutdown Galaxy
-shutdown_galaxy
-
-# Cleanup
-cleanup
-
 log_info "Galaxy setup complete."
 
-# Return to the original directory without changing the user's working directory
-popd &> /dev/null
-exit 0
+# Shutdown Galaxy
+shutdown_galaxy_with_success
 
