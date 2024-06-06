@@ -47,7 +47,23 @@ checkout_latest_release() {
     fi
 }
 
-###############################
+# Function to move existing galaxy.yml to temporary directory if it exists
+move_existing_galaxy_config() {
+    if [ -f "$GALAXY_CONFIG_PATH" ]; then
+        log_info "Existing galaxy.yml found. Backing it up into the installers temp directory $GALAXY_INSTALLER_TMP_DIR..."
+        mv "$GALAXY_CONFIG_PATH" "$GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup"
+        if [ $? -eq 0 ]; then
+            log_info "galaxy.yml moved to $GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup"
+        else
+            log_error "Failed to move existing galaxy.yml to $GALAXY_INSTALLER_TMP_DIR"
+            exit 1
+        fi
+    else
+        log_info "No existing galaxy.yml found. Proceeding with setup..."
+    fi
+}
+
+##############################
 ######## Script Start ########
 ##############################
 
@@ -55,7 +71,13 @@ checkout_latest_release() {
 log_info "Cloning Galaxy..."
 log_info "Galaxy will be cloned into $GALAXY_DIR"
 
+# If we already have a galaxy.yml, we're going to need to back it up and start fresh.
+move_existing_galaxy_config
+
+# Clone down or fast-forward Galaxy repo
 pull_repo
+
+# Calculate the latest release tag and check it out (base branch for galaxy is 'dev')
 checkout_latest_release
 
 log_info "Galaxy repository cloned and up to date."

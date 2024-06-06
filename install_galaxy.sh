@@ -4,11 +4,8 @@ source "$(dirname "$0")/common.sh"
 # Function to start Galaxy in the background
 start_galaxy() {
     log_info "Starting up Galaxy..."
-    # Last chance to override our previous traps with ones that contain a Galaxy shutdown step
-    trap 'after_galaxy_started_trap_handler SIGINT' SIGINT
-    trap 'after_galaxy_started_trap_handler SIGTERM' SIGTERM 
     # We start Galaxy in a nohup instead of using it's own daemon so we can grab the pid and kill it. Galaxy's own pidfile isn't showing up, and we were getting zombies.
-    nohup ./run.sh start &> "$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log" &
+    nohup "$GALAXY_DIR"/run.sh start &> "$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log" &
     nohup_pid=$! # Global
     log_info "Captured run.sh's nohup pid as $nohup_pid"
     tail -F "$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log" &
@@ -117,7 +114,6 @@ trap_handler() {
     shutdown_galaxy_with_error # We're not looking to continue forward to other scripts, so exit 1
 }
 
-
 # Function for any cleanup
 cleanup() {
     log_info "Cleaning up..."
@@ -128,10 +124,7 @@ cleanup() {
 ######## Script Start ########
 ##############################
 
-
-
 # Intercept ctrl-c and other quit signals to attempt to cleanly stop. Zombie Galaxy is really annoying and easy to end up with.
-# This should be done before continuing on to make any changes that affect the user
 trap 'trap_handler SIGINT' SIGINT
 trap 'trap_handler SIGTERM' SIGTERM 
 
