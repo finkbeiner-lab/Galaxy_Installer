@@ -15,7 +15,11 @@ chmod_scripts() {
     install_homebrew.sh \
     install_zsh.sh \
     install_oh-my-zsh.sh \
+    install_yq.sh \
     install_python_3.sh \
+    install_pipx.sh \
+    install_miniconda.sh \
+    add_conda_to_galaxy_config.sh \
     install_tool_shed.sh \
     install_galaxy.sh
 }
@@ -62,8 +66,12 @@ run_script install_xcode_tools.sh
 run_script install_homebrew.sh
 run_script install_zsh.sh
 run_script install_oh-my-zsh.sh
+run_script install_yq.sh
 run_script install_python_3.sh
-run script install_tool_shed.sh
+run_script install_pipx.sh
+run_script install_miniconda.sh
+run_script add_conda_to_galaxy_config.sh
+run_script install_tool_shed.sh
 run_script install_galaxy.sh
 
 # End the overall clock

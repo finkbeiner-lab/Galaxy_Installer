@@ -15,7 +15,7 @@ Zsh (Z Shell) is the command-line interface we’ll be using. It executes the co
 ### Oh-My-Zsh
 [Oh-My-Zsh](https://ohmyz.sh) provides a bunch of helpful changes to Zsh in a way that is cleanly automatically managed. Entirely optional, but recommended.
 
-### Python 3
+### Python Tools
 Installs a small Python stack.
 `pyenv` helps manage having multiple versions of Python installed at a time. `pipx` helps manage stand-alone programs written in Python (such as `Planemo`), making them avaiabile in all the installed versions of Python at once. Galaxy runs in a `venv` itself, but for tools it uses `Conda`, so we'll need both.
 1. [Python 3](https://www.python.org) (latest)

@@ -39,41 +39,4 @@ else
     exit 1
 fi
 
-# Install pipx to allow us to install stand-alone python utilities and have them available across all version of python
-log_info "Installing pipx..."
-brew install pipx
-if brew list pipx &>/dev/null; then
-    pipx ensurepath &> /dev/null # pipx outputs this scary looking warning every time, so we're going to sadly swallow this output
-    source ~/.zshrc
-    log_info "pipx installed and PATH updated."
-else
-    log_error "Failed to install pipx."
-    exit 1
-fi
-
-# Install Miniconda
-log_info "Checking for Miniconda installation..."
-if ! command -v conda &> /dev/null; then
-    log_info "Miniconda not found. Installing Miniconda..."
-    brew install --cask miniconda
-    source "$HOME/miniconda3/etc/profile.d/conda.sh"
-    conda init zsh
-else
-    log_info "Miniconda is already installed. Updating Miniconda..."
-    conda update -n base -c defaults conda
-fi
-
-# Pull in install/update changes from miniconda
-source ~/.zshrc
-
-# Verify Miniconda installation
-log_info "Verifying Miniconda installation..."
-if conda --version &>/dev/null; then
-    log_info "Miniconda installation was successful."
-else
-    log_error "Miniconda installation failed."
-    exit 1
-fi
-
 log_info "Python 3 setup complete."
-
