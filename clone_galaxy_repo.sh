@@ -51,9 +51,13 @@ checkout_latest_release() {
 move_existing_galaxy_config() {
     if [ -f "$GALAXY_CONFIG_PATH" ]; then
         log_info "Existing galaxy.yml found. Backing it up into the installers temp directory $GALAXY_INSTALLER_TMP_DIR..."
-        mv "$GALAXY_CONFIG_PATH" "$GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup"
+ 
+        # Generate a random identifier as to not overwrite other backups if the installer is re-run
+        random_id=$(date +%s%N)
+        
+        mv "$GALAXY_CONFIG_PATH" "$GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
         if [ $? -eq 0 ]; then
-            log_info "galaxy.yml moved to $GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup"
+            log_info "galaxy.yml moved to $GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
         else
             log_error "Failed to move existing galaxy.yml to $GALAXY_INSTALLER_TMP_DIR"
             exit 1
