@@ -1,5 +1,8 @@
 #!/bin/zsh
-source "$(dirname "$0")/common.sh"
+
+# Bring in common functions and configs
+source "$(dirname "$0")/../config.sh"
+source "$(dirname "$0")/../common.sh"  
 
 log_info "Checking for Oh My Zsh..."
 

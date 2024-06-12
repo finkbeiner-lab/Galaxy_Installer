@@ -1,5 +1,28 @@
 #!/bin/sh
-source "$(dirname "$0")/common.sh"
+
+# Bring in common functions and configs
+source "$(dirname "$0")/../config.sh"
+source "$(dirname "$0")/../common.sh"
+
+# Function to move existing galaxy.yml to temporary directory if it exists
+move_existing_galaxy_config() {
+    if [ -f "$GALAXY_CONFIG_PATH" ]; then
+        log_info "Existing galaxy.yml found. Backing it up into the installers temp directory $GALAXY_INSTALLER_TMP_DIR..."
+
+        # Generate a random identifier
+        random_id=$(date +%s%N)
+
+        mv "$GALAXY_CONFIG_PATH" "$GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
+        if [ $? -eq 0 ]; then
+            log_info "galaxy.yml moved to $GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
+        else
+            log_error "Failed to move existing galaxy.yml to $GALAXY_INSTALLER_TMP_DIR"                                                                                                                                                                                                                                                                           
+            exit 1
+        fi
+    else
+        log_info "No existing galaxy.yml found. Proceeding with setup..."
+    fi
+}
 
 # Function to start Galaxy in the background
 start_galaxy() {
@@ -30,33 +53,43 @@ check_galaxy() {
     shutdown_galaxy_with_error
 }
 
+# Function to create an admin user in Galaxy through `create_galaxy_admin` python helper script
+create_galaxy_admin_user() {
+    log_info "Calling out to python helper script to create a galaxy admin user..."
+    # Call helper python script and capture output
+    local output=$("$PYTHON_SCRIPTS_DIR"/call_python_script.sh create_galaxy_admin "$GALAXY_INSTANCE_URL" "$DEFAULT_GALAXY_ADMIN_EMAIL" "$DEFAULT_GALAXY_ADMIN_STARTING_PW" "$DEFAULT_GALAXY_ADMIN_NAME")
+    # Capture the python helper script's exit code
+    local exit_code=$?
+    # Process any failures
+    if [ $exit_code -ne 0 ]; then
+        log_error "Failed to create Galaxy admin user with output: $output"
+        exit $exit_code
+    fi
+    log_info "Successfully created Galaxy admin user."
+}
+
 # Function to install the tools from our ToolShed into Galaxy using Planemo
 install_tools() {
     log_info "Discovering and installing tools from $TOOL_SHED_DIR/ into Galaxy $GALAXY_DIR/..."
-    cd "$TOOL_SHED_DIR"
-
+    cd "$TOOL_SHED_DIR" || exit
     log_info "Running planemo ci_find_tools to discover tools..."
     tool_files=$(planemo ci_find_tools .)
-
     for tool_file in $tool_files; do
         tool_dir=$(dirname "$tool_file")
         log_info "Preparing tool in directory $tool_dir..."
-        
-        # Assuming .shed.yml files are correctly placed, you don't need to create or upload to a Tool Shed
-        if [ ! -f "$tool_dir/.shed.yml" ]; then
+
+        if [ -f "$tool_dir/.shed.yml" ]; then
+            log_info "Installing tool from $tool_dir using Galaxy API..."
+            python3 install_tool.py "$tool_dir/.shed.yml" "$GALAXY_API_KEY" "$GALAXY_INSTANCE_URL"
+        else
             log_error "Missing .shed.yml in $tool_dir"
             shutdown_galaxy_with_error
         fi
     done
-
-    log_info "Serving tools from the local directory to Galaxy..."
-    if ! planemo shed_serve --galaxy_root "$GALAXY_DIR" --shed_target local; then
-        log_error "Failed to serve tools from the local directory to Galaxy"
-        shutdown_galaxy_with_error
-    fi
+    log_info "All tools installed successfully."
 }
 
-# Function to verify if tools are installed correctly
+# Function to verify tools are working
 verify_tools() {
     local tool_ids=($(fetch_tool_ids))
     for tool_id in "${tool_ids[@]}"; do
@@ -120,7 +153,7 @@ cleanup() {
     rm -f $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log
 }
 
-###############################
+##############################
 ######## Script Start ########
 ##############################
 
@@ -138,11 +171,15 @@ start_galaxy
 # Keep checking for Galaxy to become reponsive
 check_galaxy
 
+# Create an admin user for Galaxy and capture API key
+create_galaxy_admin_user
+
 # Install our tools from our ToolShed repo
-install_tools
+log_error "Skipping tool installation until implemented"
+# install_tools
 
 # Test a tool from our toolshed
-verify_tools
+# verify_tools
 
 # Check that Galaxy survived
 check_galaxy

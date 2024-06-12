@@ -1,7 +1,9 @@
 #! /bin/sh
 # Provides a common set of utilities for the other scripts
 
-source "$(dirname "$0")/config.sh"
+#
+# It is important to keep this in lockstep with common.py to retain consistency in the outputs in our shell scrips and python scripts.
+#
 
 # Function to log informational messages
 log_info() {
@@ -25,6 +27,10 @@ play_alert_sound() {
 
 # Function to check if the directory exists and create it if not
 ensure_tmp_directory_exists() {
+    if [ -z "$GALAXY_INSTALLER_TMP_DIR" ]; then
+        log_error "You need to source config.sh where GALAXY_INSTALLER_TMP_DIR is defined."
+        exit 1
+    fi
     if [ ! -d "$GALAXY_INSTALLER_TMP_DIR" ]; then
         log_info "Directory $GALAXY_INSTALLER_TMP_DIR does not exist. Creating it..."
         mkdir -p "$GALAXY_INSTALLER_TMP_DIR"

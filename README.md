@@ -17,15 +17,18 @@ Zsh (Z Shell) is the command-line interface we’ll be using. It executes the co
 
 ### Python Tools
 Installs a small Python stack.
-`pyenv` helps manage having multiple versions of Python installed at a time. `pipx` helps manage stand-alone programs written in Python (such as `Planemo`), making them avaiabile in all the installed versions of Python at once. Galaxy runs in a `venv` itself, but for tools it uses `Conda`, so we'll need both.
+`pipx` helps manage stand-alone programs written in Python (such as `Planemo`), making them avaiabile in all the installed versions of Python at once. Galaxy runs in a `venv` itself, but for tools it uses `Conda`, so we'll need both. Installing `Miniconda` gives us both and a stable Python3 release.
 1. [Python 3](https://www.python.org) (latest)
-2. [pyenv](https://github.com/pyenv/pyenv)
-3. [pipx](https://github.com/pypa/pipx)
-4. [miniconda](https://docs.anaconda.com/free/miniconda/)
+2. [pipx](https://github.com/pypa/pipx)
+3. [miniconda](https://docs.anaconda.com/free/miniconda/)
 
 ### Tool Shed
 A Galaxy [ToolShed](https://galaxyproject.org/toolshed/) is where Galaxy Tools (modules) live. This installs [our own](https://github.com/finkbeiner-lab/Galaxy_Tool_Shed) set of custom tools into Galaxy, and [Planemo](https://planemo.readthedocs.io/en/latest/writing_standalone.html), a tool for creating and testing new tools.
 
 ### Galaxy
 [Galaxy](https://github.com/galaxyproject/galaxy) is the main course. It's a scientifc workflow manager and script runner that has a brower-based GUI (when running locally it's usually found in your browser at http://localhost:8080). This installs the latest released version of Galaxy and deploys our ToolShed on it.
+
+
+# Structure of this project
+The scripts in this project do make an assumption as to where they are located in order to make sure they can source `common.sh`, from then on they are mostly agnostic. However, the python helper scripts have a more strict structural requirement as they need to find `common.py`, they need a sibling `requirements.yml`, they need to be in a directory named identically to them and their Conda enviroment, and the wrapper `call_python_script.sh` has to be able to traverse this.
 
