@@ -2,7 +2,7 @@
 # Provides a common set of utilities for the other scripts
 
 #
-# It is important to keep this in lockstep with common.py to retain consistency in the outputs in our shell scrips and python scripts.
+# It is important to keep this in lockstep with common.py to retain consistency in the outputs in our shell scripts and python scripts.
 #
 
 # Function to log informational messages
@@ -43,3 +43,28 @@ ensure_tmp_directory_exists() {
     fi
 }
 
+# Function to create a PID file
+create_pid_file() {
+    echo $1 > "$GALAXY_INSTALLER_TMP_DIR/$2_pid.txt"
+    log_info "Created PID file for $2 with PID $1"
+}
+
+# Function to load a PID from a file
+load_pid() {
+    if [ -f "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt" ]; then
+        cat "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
+    else
+        log_error "PID file for $1 not found"
+        return 1
+    fi
+}
+
+# Function to delete a PID file
+delete_pid_file() {
+    if [ -f "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt" ]; then
+        rm "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
+        log_info "Deleted PID file for $1"
+    else
+        log_info "No PID file for $1 to delete"
+    fi
+}
