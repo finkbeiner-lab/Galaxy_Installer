@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+# Bring in common functions and configs
+source "$(dirname "$0")/../config.sh"
 source "$(dirname "$0")/../common.sh"
 
 # Function to handle cleanup
@@ -35,7 +37,7 @@ trap cleanup EXIT
 
 # Initialize Conda to ensure the necessary shell functions and environment variables are set
 log_info "Initializing Conda..."
-conda init "$(basename "${SHELL}")"
+conda init --quiet "$(basename "${SHELL}")"
 
 # Check and remove the existing Conda environment if it exists
 check_and_remove_env

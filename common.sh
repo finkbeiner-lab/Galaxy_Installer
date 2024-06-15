@@ -25,24 +25,6 @@ play_alert_sound() {
     afplay /System/Library/Sounds/Blow.aiff 2>/dev/null || log_warning "Failed to play alert sound."
 }
 
-# Function to check if the directory exists and create it if not
-ensure_tmp_directory_exists() {
-    if [ -z "$GALAXY_INSTALLER_TMP_DIR" ]; then
-        log_error "You need to source config.sh where GALAXY_INSTALLER_TMP_DIR is defined."
-        exit 1
-    fi
-    if [ ! -d "$GALAXY_INSTALLER_TMP_DIR" ]; then
-        log_info "Directory $GALAXY_INSTALLER_TMP_DIR does not exist. Creating it..."
-        mkdir -p "$GALAXY_INSTALLER_TMP_DIR"
-        if [ $? -eq 0 ]; then
-            log_info "Directory $GALAXY_INSTALLER_TMP_DIR created successfully."
-        else
-            log_error "Failed to create directory $GALAXY_INSTALLER_TMP_DIR."
-            exit 1
-        fi
-    fi
-}
-
 # Function to create a PID file
 create_pid_file() {
     echo $1 > "$GALAXY_INSTALLER_TMP_DIR/$2_pid.txt"
@@ -68,3 +50,4 @@ delete_pid_file() {
         log_info "No PID file for $1 to delete"
     fi
 }
+

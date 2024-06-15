@@ -57,7 +57,7 @@ check_galaxy() {
 create_galaxy_admin_user() {
     log_info "Calling out to python helper script to create a galaxy admin user..."
     # Call helper python script and capture output
-    local output=$("$PYTHON_SCRIPTS_DIR"/call_python_script.sh create_galaxy_admin "$GALAXY_INSTANCE_URL" "$DEFAULT_GALAXY_ADMIN_EMAIL" "$DEFAULT_GALAXY_ADMIN_STARTING_PW" "$DEFAULT_GALAXY_ADMIN_NAME")
+    "$PYTHON_SCRIPTS_DIR"/call_python_script.sh create_galaxy_admin "$GALAXY_INSTANCE_URL" "$DEFAULT_GALAXY_ADMIN_EMAIL" "$DEFAULT_GALAXY_ADMIN_STARTING_PW" "$DEFAULT_GALAXY_ADMIN_NAME"
     # Capture the python helper script's exit code
     local exit_code=$?
     # Process any failures
@@ -161,9 +161,6 @@ cleanup() {
 trap 'trap_handler SIGINT' SIGINT
 trap 'trap_handler SIGTERM' SIGTERM 
 
-# Create a place for our logfile
-ensure_tmp_directory_exists
-
 # Start Galaxy in the background and populate global pid variables $nohup_pid and $tail_pid
 log_info "We're going to try to start Galaxy. This can take a while the first time (~20min), and sometimes it looks stuck for a minute or two when it isn't."
 start_galaxy
@@ -172,13 +169,16 @@ start_galaxy
 check_galaxy
 
 # Create an admin user for Galaxy and capture API key
-create_galaxy_admin_user
+log_error "Skipping creating Galaxy Admin User until implemented"
+#create_galaxy_admin_user
+
 
 # Install our tools from our ToolShed repo
 log_error "Skipping tool installation until implemented"
 # install_tools
 
 # Test a tool from our toolshed
+log_error "Skipping verifying tools until implemented"
 # verify_tools
 
 # Check that Galaxy survived
