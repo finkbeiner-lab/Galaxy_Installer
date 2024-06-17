@@ -10,7 +10,7 @@ check_planemo() {
     command -v planemo &>/dev/null
 }
 
-# Function to install Planemo, a tool for creating and testing new tools for the ToolShed
+# Function to install Planemo, a tool for creating and testing new tools for the Tool Shed
 # We might not need this in remote instances of Galaxy, and perhaps not the pipx dependency, but this script doesn't detect different environments yet
 install_planemo() {
     log_info "Installing Planemo..."
@@ -26,10 +26,10 @@ install_planemo() {
 # Function to download our ToolShed
 get_tool_shed_repo() {
     if [ ! -d "$TOOL_SHED_DIR" ]; then
-        log_info "Cloning the $TOOL_SHED_NAME ToolShed repository into $TOOL_SHED_DIR..."
+        log_info "Cloning the $TOOL_SHED_NAME repository into $TOOL_SHED_DIR..."
         git clone "$TOOL_SHED_REPO" "$TOOL_SHED_DIR"
     else
-        log_info "Updating the $TOOL_SHED_NAME ToolShed repository..."
+        log_info "Updating the $TOOL_SHED_NAME repository..."
         cd "$TOOL_SHED_DIR" && git pull
     fi
 }
@@ -50,7 +50,7 @@ install_or_update_planemo() {
 }
 
 ######## Script Start ########
-log_info "Getting the $TOOL_SHED_NAME ToolShed and its dependencies ($TOOL_SHED_REPO)...."
+log_info "Getting the $TOOL_SHED_NAME and its dependencies ($TOOL_SHED_REPO)...."
 
 # Get Planemo
 install_or_update_planemo
@@ -58,5 +58,5 @@ install_or_update_planemo
 # Download or update our ToolShed
 get_tool_shed_repo
 
-log_info "$TOOL_SHED_NAME ToolShed now available with dependencies installed and up-to-date.."
+log_info "$TOOL_SHED_NAME now available with dependencies installed and up-to-date.."
 

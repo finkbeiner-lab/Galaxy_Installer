@@ -127,5 +127,7 @@ elapsed_seconds=$((elapsed_time % 60))
 
 # Finish up
 log_info "Total execution time: $elapsed_minutes minutes $elapsed_seconds seconds"
+log_info "You did it!"
+log_info "galaxy start and galaxy stop shortcuts have been added for you. They will work in any terminals you open after this one. To use them now, first run: source $ZSH_PROFILE_PATH"
 log_info "Setup completed successfully! 🎉🎉🎉"
 

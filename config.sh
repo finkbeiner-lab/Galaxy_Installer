@@ -55,4 +55,6 @@ export SHELL_SCRIPTS_DIR="shell"
 export PYTHON_SCRIPTS_DIR="python"
 # The location of the plugin for controlling galaxy (start, stop, etc).
 export GALAXY_CONTROL_DIR="galaxy_control"
+# Plugin registration script
+export GALAXY_CONTROL_PLUGIN_SCRIPT="galaxy_control.plugin.zsh"
 
