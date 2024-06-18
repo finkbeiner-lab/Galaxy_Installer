@@ -23,19 +23,36 @@ install_miniconda() {
         log_info "conda not found. Installing Miniconda..."
         brew install --cask miniconda
     else
-        log_info "conda is already installed."
+        log_info "Conda is already installed."
     fi
     conda init "$(basename "${SHELL}")"
 }
 
-# Function to ensure Python is installed and updated within Miniconda's provided versions
-ensure_python_installed() {
-    local python_version=$1
-    if ! conda list | grep -q "python\s*$python_version"; then
-        log_info "Installing Python $python_version using conda..."
-        conda install python=$python_version -y
+# Function to find the latest version of Python 3 packaged with Conda
+find_latest_conda_python_version() {
+    log_info "Asking Conda what the latest Python 3 version it currently supports is..."
+    latest_python_version=$(conda search 'python>=3' | tail -n 1 | grep -Eo '3\.[0-9]+\.[0-9]+')
+    if [ -n "$latest_python_version" ]; then
+        log_info "Found latest version of Python 3 in Conda: $latest_python_version"
+        echo "$latest_python_version"
     else
-        log_info "Python $python_version is already installed."
+        log_error "Unable to find the latest version of python supported by Conda."
+        exit 1
+    fi
+}
+
+# Function to ensure Python is installed and updated within Miniconda's provided versions
+install_latest_python() {
+    latest_python_version=$(conda search 'python>=3' | tail -n 1 | grep -Eo '3\.[0-9]+\.[0-9]+')
+    if [ -z "$latest_python_version" ]; then 
+        log_error "Unable to resolve latest Python version from Conda."
+        exit 1
+    fi
+    if ! conda list | grep -Eq "^python[[:space:]]+${latest_python_version}"; then
+        log_info "Installing Python $latest_python_version using conda..."
+        conda install python=$latest_python_version -y
+    else
+        log_info "Python $latest_python_version is already installed."
     fi
 }
 
@@ -60,14 +77,11 @@ check_conda_installation
 # Install or update Miniconda
 install_miniconda
 
-# Determine the latest Python version provided by Miniconda
-latest_python_version=$(conda search python | grep -Eo '3\.[0-9]+\.[0-9]+' | sort -V | tail -1)
-log_info "Latest Python version available in Miniconda: $latest_python_version"
-
 # Grab latest python that Conda supports
-ensure_python_installed $latest_python_version
+install_latest_python
 
 # Verify that we can call into python3
 verify_python_installation
 
 log_info "Python 3 setup complete."
+

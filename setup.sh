@@ -68,6 +68,8 @@ run_script() {
 
 # Function to check if the directory exists and create it or clear it if it already exists
 create_installer_tmp_directory() {
+    # Make sure we're in project root
+    cd "$(dirname "$0")"
     if [ -d "$GALAXY_INSTALLER_TMP_DIR" ]; then
         log_info "Directory $GALAXY_INSTALLER_TMP_DIR already exists. Clearing it out..."
         # Clear the directory

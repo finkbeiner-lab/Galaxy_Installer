@@ -6,15 +6,13 @@
 
 
 ### External Project Structure ###
-# Defines where we will clone repos to.
+# Defines where we will clone repos to. Generally this will be the user's home directory.
 # IMPORTANT NOTE! this resolved to an absolute path HAS TO BE SHORT or Galaxy will fail to start supervisord !!
 export INSTALLATION_HOME="${HOME}"
 # The location of the zsh profile that we should modify for the user. 
 export ZSH_PROFILE_PATH="${HOME}/.zshrc"
 # Location where "plugin" scripts can be copied on to the system for loading into the zsh profile.
 export PLUGIN_DEST="${HOME}/.oh-my-zsh/custom/plugins"
-# Temp directory location.
-export TEMP_DIR="/tmp"
 
 
 ### Galaxy Configs ###
@@ -47,8 +45,8 @@ export TOOL_SHED_OWNER_NAME="finkbeiner-lab"
 
 
 ### Install Galaxy Project Internal Structure ###
-# The location this installer will use to download and run its scripts.
-export GALAXY_INSTALLER_TMP_DIR="${TEMP_DIR}/galaxy_installer"
+# The location this installer will use for logs and temporary files..
+export GALAXY_INSTALLER_TMP_DIR="temp"
 # The location of shell scripts from root. Note that the common files that a user might change, such as this config, will live in the project root, regardless if they are shell-based.
 export SHELL_SCRIPTS_DIR="shell"
 # The location of python helper scripts from root, and common python related scripts and files. Note that the python helper scripts themselves will be in their own subdirectories in the python directory.
