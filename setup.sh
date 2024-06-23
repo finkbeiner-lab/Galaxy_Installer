@@ -93,16 +93,15 @@ create_installer_tmp_directory() {
 ######## Script Start ########
 ##############################
 
-log_info "Installing Galaxy and its dependencies on macOS..."
-
 # Change to the root directory of the project
+# Every script called will begin in this directory. This is important for correctly resolving paths.
 cd "$(dirname "$0")"
 
-# Make scripts executable
-chmod_scripts
-
 # Create or clear out our temp directory
+# This needs to happen early as it will contain the log from this file, and logging above it probably explodes.
 create_installer_tmp_directory
+
+log_info "Installing Galaxy and its dependencies on macOS..."
 
 # Make scripts executable
 chmod_scripts
@@ -112,14 +111,14 @@ run_script "$SHELL_SCRIPTS_DIR/install_xcode_tools.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_homebrew.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_zsh.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_oh-my-zsh.sh"
-run_script "$SHELL_SCRIPTS_DIR/install_plugin.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_yq.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_python_3.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_pipx.sh"
-run_script "$SHELL_SCRIPTS_DIR/add_conda_to_galaxy_config.sh"
-run_script "$SHELL_SCRIPTS_DIR/install_tool_shed.sh"
 run_script "$SHELL_SCRIPTS_DIR/clone_galaxy_repo.sh"
-run_script "$SHELL_SCRIPTS_DIR/install_galaxy.sh"
+run_script "$SHELL_SCRIPTS_DIR/add_conda_to_galaxy_config.sh"
+run_script "$SHELL_SCRIPTS_DIR/install_plugin.sh"
+run_script "$SHELL_SCRIPTS_DIR/install_tool_shed.sh"
+#run_script "$SHELL_SCRIPTS_DIR/install_galaxy.sh"
 
 # End the overall clock
 end_time=$(date +%s)
