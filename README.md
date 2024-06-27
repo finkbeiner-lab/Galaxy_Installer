@@ -3,7 +3,7 @@ Downloads, installs, and updates the latest released version Galaxy, all of its 
 You can always re-run this installer. It will attempt to fix, update, and verify all aspects of the project for you.
 
 # Shortcuts
-Once this installer has completed, you can use the shortcuts `galaxy start` and `galaxy stop`, and this project will continue to help manage Galaxy on your behalf. 
+Once this installer has completed, you can use the shortcuts `galaxy start` and `galaxy stop`, and this project will continue to help manage Galaxy on your behalf.
 
 # What's Installed
 
@@ -38,6 +38,9 @@ The scripts in this project do make an assumption as to where they are located i
 
 ## Zsh plugins
 This installer copies the plugin `galaxy_control` into your Zsh environment's plugin directory (usually ~/.oh-my-zsh/custom/plugins). Zsh runs the control script `galaxy_control.plugin.zsh` to setup shortcuts in your shell context (usually via ~/.zshrc) to run galaxy commands (start|stop|etc).
+
+### Advanced Usage
+Under the hood, the shortcuts are using galaxy's `run.sh` script to start it. They will pass on additional arguments supplied to them on to `run.sh` (which Galaxy itself passes on to other scripts). So `galaxy start <foo>` calls `run.sh <foo>`. This could be helpful if there are extra flags you want to send to Galaxy.
 
 # Help!
 ### 1. Logs
