@@ -34,7 +34,7 @@ A Galaxy [Tool Shed](https://galaxyproject.org/toolshed/) is where Galaxy Tools 
 
 
 # Structure of this project
-The scripts in this project do make an assumption as to where they are located in order to make sure they can source `config.sh` and `common.sh` from the project root. However, the python helper scripts need to find `common.py`, and each needs a sibling `requirements.yml`. They are expected to be in a directory named identically to them and their Conda enviroment, and the wrapper `call_python_script.sh` is responsible for booting up this conda environment, running them, and returning their output back to the shell.
+The scripts in this project do make an assumption as to where they are located in order to make sure they can source `config.sh` and `common.sh` from the project root. The python helper scripts need to find `common.py`, and each needs a sibling `requirements.yml`. They are expected to be in a directory named identically to them and their Conda enviroment, and the wrapper `call_python_script.sh` is responsible for booting up this conda environment, running them, and returning their output back to the shell.
 
 ## Zsh plugins
 This installer copies the plugin `galaxy_control` into your Zsh environment's plugin directory (usually ~/.oh-my-zsh/custom/plugins). Zsh runs the control script `galaxy_control.plugin.zsh` to setup shortcuts in your shell context (usually via ~/.zshrc) to run galaxy commands (start|stop|etc).
