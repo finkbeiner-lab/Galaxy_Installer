@@ -5,7 +5,7 @@ You can always re-run this installer. It will attempt to fix, update, and verify
 # Shortcuts
 Once this installer has completed, you can use the shortcuts `galaxy start` and `galaxy stop`, and this project will continue to help manage Galaxy on your behalf. 
 
-## What's Installed
+# What's Installed
 
 ### Xcode Tools
 Xcode Tools are a package of developer tools for macOS. Specifically, we need Git from it. We could install Git with Homebrew or some other method, but using Xcode Tools provides the greatest compatability for us on macOS.
