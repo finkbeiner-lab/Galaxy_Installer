@@ -40,4 +40,8 @@ The scripts in this project do make an assumption as to where they are located i
 This installer copies the plugin `galaxy_control` into your Zsh environment's plugin directory (usually ~/.oh-my-zsh/custom/plugins). Zsh runs the control script `galaxy_control.plugin.zsh` to setup shortcuts in your shell context (usually via ~/.zshrc) to run galaxy commands (start|stop|etc).
 
 # Help
-If you need active help with this Galaxy Installer, the best place to go is our gladstone institutes slack in the channel #galaxy.
+## Logs
+There are logs for both this installer project, and for galaxy itself, both stored in a directory called `temp` within this project. Navigate to the directory this project was cloned down to, and open `.log` files with any text editor. This project makes an attempt to make error messages found in the logs intelligbile and actionable, so this really does end up being your best foot forward. Folks are generally going to ask you for the logs to try to help resolve your issue, so locating these is going to be step one. The installer outputs the location of these on your machine if you need help tracking them down.
+
+## Slack
+If you need active help with this Galaxy Installer, the best place to go is our Gladstone Institutes Slack in the channel `#galaxy`.
