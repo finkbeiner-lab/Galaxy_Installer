@@ -1,23 +1,31 @@
 #! /bin/sh
+# common.sh
 # Provides a common set of utilities for the other scripts
 
 #
 # It is important to keep this in lockstep with common.py to retain consistency in the outputs in our shell scripts and python scripts.
 #
 
+# Every script begins in the working directory of the project root, as set in setup.sh, and uses relative paths.
+# Plugin scripts, found elsewhere on the host machine, use absolute paths.
+# Occasionally, one of the scripts changes the working directory for a bit, and will still need to log what it is up to.
+# So we'll resolve the installer's log file to an absolute path so they can do so.
+ABSOLUTE_PATH_LOG_FILE=$(cd "$(dirname "$INSTALLER_LOG_FILE")"; pwd)/$(basename "$INSTALLER_LOG_FILE")
+
+
 # Function to log informational messages
 log_info() {
-    echo "\033[0;34m🔬 [INSTALL GALAXY PROJECT] $1\033[0m" # Blue
+    echo "\033[0;34m🔬 [INSTALL GALAXY PROJECT] $1\033[0m" | tee -a "$ABSOLUTE_PATH_LOG_FILE" # Blue
 }
 
 # Function to log warning messages
 log_warning() {
-    echo "\033[0;33m🔬 [WARNING] $1\033[0m" # Yellow
+    echo "\033[0;33m🔬 [WARNING] $1\033[0m" | tee -a "$ABSOLUTE_PATH_LOG_FILE" # Yellow
 }
 
 # Function to log error messages
 log_error() {
-    echo "\033[0;31m🔬 [ERROR] $1\033[0m" >&2 # Red, to stderr
+    echo "\033[0;31m🔬 [ERROR] $1\033[0m" | tee -a "$ABSOLUTE_PATH_LOG_FILE" >&2 # Red, to stderr
 }
 
 # Function to play an alert sound
