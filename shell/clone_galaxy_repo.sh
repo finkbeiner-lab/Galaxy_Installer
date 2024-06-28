@@ -14,7 +14,7 @@ pull_repo() {
         cd "$GALAXY_DIR"
         log_info "Checking out Galaxy's main branch 'dev' for updating..."
         git checkout dev
-        if git pull; then
+        if git pull --depth 1; then
             log_info "Galaxy repository update through fast-forward was successful."
         else
             log_error "Cannot fast-forward. Your copy of Galaxy has diverged significantly from the official repository. You'll need to resolve a merge manually, or delete $GALAXY_DIR and start fresh."
