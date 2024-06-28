@@ -11,7 +11,6 @@ check_planemo() {
 }
 
 # Function to install Planemo, a tool for creating and testing new tools for the Tool Shed
-# We might not need this in remote instances of Galaxy, and perhaps not the pipx dependency, but this script doesn't detect different environments yet
 install_planemo() {
     log_info "Installing Planemo..."
     pipx install planemo
@@ -25,12 +24,18 @@ install_planemo() {
 
 # Function to download our ToolShed
 get_tool_shed_repo() {
+    log_info "Grabbing our tool shed (deep clone)..."
     if [ ! -d "$TOOL_SHED_DIR" ]; then
         log_info "Cloning the $TOOL_SHED_NAME repository into $TOOL_SHED_DIR..."
         git clone "$TOOL_SHED_REPO" "$TOOL_SHED_DIR"
     else
-        log_info "Updating the $TOOL_SHED_NAME repository..."
-        cd "$TOOL_SHED_DIR" && git pull
+        log_info "Tool shed exists, updating the $TOOL_SHED_NAME repository..."
+        if git -C "$TOOL_SHED_DIR" pull --ff-only; then
+            log_info "Tool shed repository update through fast-forward was successful."
+        else
+            log_error "Cannot fast-forward. Your copy of the tool shed has diverged significantly from the repository. You can resolve a merge manually if this is intentional, or delete $TOOL_SHED_DIR and re-run this installer."
+            exit 1
+        fi
     fi
 }
 
@@ -50,7 +55,7 @@ install_or_update_planemo() {
 }
 
 ######## Script Start ########
-log_info "Getting the $TOOL_SHED_NAME and its dependencies ($TOOL_SHED_REPO)...."
+log_info "Getting the $TOOL_SHED_NAME and tool shed utilities ($TOOL_SHED_REPO)...."
 
 # Get Planemo
 install_or_update_planemo
@@ -58,5 +63,5 @@ install_or_update_planemo
 # Download or update our ToolShed
 get_tool_shed_repo
 
-log_info "$TOOL_SHED_NAME now available with dependencies installed and up-to-date.."
+log_info "$TOOL_SHED_NAME and related utilities successfully installed."
 
