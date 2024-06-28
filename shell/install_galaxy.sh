@@ -16,7 +16,7 @@ move_existing_galaxy_config() {
         if [ $? -eq 0 ]; then
             log_info "galaxy.yml moved to $GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
         else
-            log_error "Failed to move existing galaxy.yml to $GALAXY_INSTALLER_TMP_DIR"                                                                                                                                                                                                                                                                           
+            log_error "Failed to move existing galaxy.yml to $GALAXY_INSTALLER_TMP_DIR"
             exit 1
         fi
     else
@@ -27,12 +27,14 @@ move_existing_galaxy_config() {
 # Function to start Galaxy in the background
 start_galaxy() {
     log_info "Starting up Galaxy..."
-    # We start Galaxy in a nohup instead of using it's own daemon so we can grab the pid and kill it. Galaxy's own pidfile isn't showing up, and we were getting zombies.
+    # We start Galaxy in a nohup instead of using its own daemon so we can grab the pid and kill it. Galaxy's own pidfile isn't showing up, and we were getting zombies.
     nohup "$GALAXY_DIR"/run.sh start &> "$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log" &
-    nohup_pid=$! # Global
-    log_info "Captured run.sh's nohup pid as $nohup_pid"
+    nohup_pid=$!
+    create_pid_file $nohup_pid "$GALAXY_NOHUP_PID"
+    log_info "Captured run.sh's nohup pid as $nohup_pid" 
     tail -F "$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log" &
-    tail_pid=$! # Global
+    tail_pid=$!
+    create_pid_file $tail_pid "$TAIL_PID"
     log_info "Captured tail's pid as $tail_pid"
     # Let's give Galaxy some time to establish its processes, it won't be ready for a while anyway
     sleep 5
@@ -49,7 +51,7 @@ check_galaxy() {
         log_info "Waiting for Galaxy server to spin up... $i/600"
         sleep 3
     done
-    log_error "Galaxy server did not start successfully. Take a peak at $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
+    log_error "Galaxy server did not start successfully. Take a peek at $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
     shutdown_galaxy_with_error
 }
 
@@ -68,12 +70,11 @@ create_galaxy_admin_user() {
     log_info "Successfully created Galaxy admin user."
 }
 
-# Function to install the tools from our ToolShed into Galaxy using Planemo
+# Function to install the tools from our tool shed using planemo and the python API
 install_tools() {
     log_info "Discovering and installing tools from $TOOL_SHED_DIR/ into Galaxy $GALAXY_DIR/..."
-    cd "$TOOL_SHED_DIR" || exit
     log_info "Running planemo ci_find_tools to discover tools..."
-    tool_files=$(planemo ci_find_tools .)
+    tool_files=$(planemo ci_find_tools "$TOOL_SHED_DIR")
     for tool_file in $tool_files; do
         tool_dir=$(dirname "$tool_file")
         log_info "Preparing tool in directory $tool_dir..."
@@ -107,16 +108,18 @@ shutdown_galaxy() {
     "$GALAXY_DIR"/run.sh stop
     log_info "Waiting a brief moment for Galaxy to shut down..."
     sleep 2
-    if [ -n "$nohup_pid" ]; then
+    if nohup_pid=$(load_pid "$GALAXY_NOHUP_PID"); then
         log_info "Killing run.sh's nohup process group from pid $nohup_pid..."
         kill -TERM -$nohup_pid &> /dev/null # No zombies. No child zombies.
+        delete_pid_file "$GALAXY_NOHUP_PID"
     fi
     sync # Dump any remaining log_info lines from tail to the console
-    if [ -n "$tail_pid" ]; then
+    if tail_pid=$(load_pid "$TAIL_PID"); then
         log_info "Killing tail's pid $tail_pid..."
         kill $tail_pid &> /dev/null # Seriously. No zombies.
         log_info "Waiting for tail to exit..."
         wait $tail_pid &> /dev/null # The script will outpace tail's ability to shutdown cleanly, so we'll wait on it
+        delete_pid_file "$TAIL_PID"
     fi
     log_info "Galaxy shutdown complete."
     return 0
@@ -159,19 +162,18 @@ cleanup() {
 
 # Intercept ctrl-c and other quit signals to attempt to cleanly stop. Zombie Galaxy is really annoying and easy to end up with.
 trap 'trap_handler SIGINT' SIGINT
-trap 'trap_handler SIGTERM' SIGTERM 
+trap 'trap_handler SIGTERM' SIGTERM
 
 # Start Galaxy in the background and populate global pid variables $nohup_pid and $tail_pid
 log_info "We're going to try to start Galaxy. This can take a while the first time (~20min), and sometimes it looks stuck for a minute or two when it isn't."
 start_galaxy
 
-# Keep checking for Galaxy to become reponsive
+# Keep checking for Galaxy to become responsive
 check_galaxy
 
 # Create an admin user for Galaxy and capture API key
 log_error "Skipping creating Galaxy Admin User until implemented"
 #create_galaxy_admin_user
-
 
 # Install our tools from our ToolShed repo
 log_error "Skipping tool installation until implemented"
@@ -188,4 +190,3 @@ log_info "Galaxy setup complete."
 
 # Shutdown Galaxy
 shutdown_galaxy_with_success
-

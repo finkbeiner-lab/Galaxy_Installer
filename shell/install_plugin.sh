@@ -45,22 +45,21 @@ update_plugin_script() {
     # Read and replace placeholders
     local script_content=$(<"$temp_script_path")
    
-    # Get the absolute path of the directory above the current script's location.
-    # I'm not sure why this is resolving differently than the source call at the top of this file, but ../ is resolving to the wrong directory.
-    # As a quick fix, I'm going to remove the parent path out of the call, which resolves to the correct directory.
-    # If you know why, update this comment. Thank you.
-    local config_directory=$(cd "$(dirname "$0")/" && pwd)
+    # Resolve the project root directory
+    local project_root=$(cd "$(dirname "$0")/" && pwd)
 
     # Construct full paths to the config and common scripts
-    local config_sh_path="${config_directory}/config.sh"
-    local common_sh_path="${config_directory}/common.sh"
+    local config_sh_path="${project_root}/config.sh"
+    local common_sh_path="${project_root}/common.sh"
 
     # Use these paths in the script
     log_info "Config path: $config_sh_path"
     log_info "Common functions path: $common_sh_path"
+    log_info "Project root path: $project_root"
 
     script_content=${script_content//__CONFIG_SH_PATH__/$config_sh_path}
     script_content=${script_content//__COMMON_SH_PATH__/$common_sh_path}
+    script_content=${script_content//__PROJECT_ROOT__/$project_root}
     script_content=${script_content//__SCRIPT_PATH__/"$PLUGIN_DEST/$GALAXY_CONTROL_DIR/$GALAXY_CONTROL_PLUGIN_SCRIPT"}
 
     # Write the modified content back to the destination
@@ -77,6 +76,28 @@ update_plugin_script() {
     fi
 }
 
+# Function to update the plugins array in the ZSH profile to include the galaxy_control plugin
+update_plugins_array() {
+    plugin_name="$GALAXY_CONTROL_DIR" # name needs to be the same as the directory
+    zsh_profile="$ZSH_PROFILE_PATH"
+    log_info "Updating the zsh profile at $zsh_profile to load the plugin $plugin_name..." 
+    if ! grep -q "$plugin_name" "$zsh_profile"; then
+        local temp_file=$(mktemp)
+        while read -r line; do
+            if [[ "$line" == plugins=\(* ]]; then
+                if [[ "$line" != *"$plugin_name"* ]]; then
+                    line="${line%\)} $plugin_name)"
+                fi
+            fi
+            echo "$line"
+        done < "$zsh_profile" > "$temp_file"
+        mv "$temp_file" "$zsh_profile"
+        log_info "Added $plugin_name plugin to $zsh_profile"
+    else
+        log_info "$plugin_name plugin is already present in $zsh_profile"
+    fi
+}
+
 ##############################
 ######## Script Start ########
 ##############################
@@ -86,5 +107,6 @@ log_info "Starting plugin installation process..."
 create_plugin_directory
 copy_plugin_files
 update_plugin_script
+update_plugins_array "$GALAXY_CONTROL_DIR" "$ZSH_PROFILE_PATH" 
 
 log_info "Plugin installation complete."

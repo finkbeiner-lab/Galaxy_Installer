@@ -1,28 +1,25 @@
-#! /bin/zsh
+#!/bin/zsh
 # galaxy_control.plugin.zsh
-
 
 # This plugin script is designed to be sourced by zsh when it is loading plugins.
 # It sets up the shell context to know about 'galaxy start' and 'galaxy stop' etc.
-
 
 # Hard-coded paths set during installation
 # These must be hard-coded absolute paths, because sourced scripts do not have context on where they live (outside of shell-specific magic functions).
 # Nor is there any way to resolve where our common.sh and config.sh files have been installed on the machine at runtime without forcing them or a pointer file to be stored in a specific place.
 # If these look like __<FOO>__ instead of an actual path, the installer failed to update the placeholder variables.
 # If you have moved the Galaxy Installer's directory, you can manually update these paths to reattach them.
-CONFIG_SH_PATH="__CONFIG_SH_PATH__"
-COMMON_SH_PATH="__COMMON_SH_PATH__"
+PROJECT_ROOT="__PROJECT_ROOT__"
 SCRIPT_PATH="__SCRIPT_PATH__"  # The path to this plugin script, shell scripts called by this plugin are expected to be siblings of its location.
 
-# Standard usage help
+# Function to display standard usage help
 display_usage() {
     echo "Usage:"
     echo "  galaxy start  - Start Galaxy"
     echo "  galaxy stop   - Stop Galaxy"
 }
 
-# Help for configuration sourcing issues
+# Function for configuration issues help
 display_config_help() {
     echo "Error: Unable to load configuration or common scripts from the Install Galaxy root directory (config.sh and common.sh)."
     echo "Please ensure the Galaxy Installer directory has not been moved or deleted."
@@ -36,12 +33,20 @@ display_config_help() {
     fi
 }
 
+# Function to ensure the temp directory is still around
+create_installer_tmp_directory() {
+    # Make sure we're in project root
+    cd "$PROJECT_ROOT"
+    if [ -n "$GALAXY_INSTALLER_TMP_DIR" ]; then
+        mkdir -p "$GALAXY_INSTALLER_TMP_DIR"
+    fi
+}
 
 # Function to validate and source required configuration files
 source_configs() {
-    if [[ -f "$CONFIG_SH_PATH" && -f "$COMMON_SH_PATH" ]]; then
-        source "$CONFIG_SH_PATH"
-        source "$COMMON_SH_PATH"
+    if [[ -f "$PROJECT_ROOT/config.sh" && -f "$PROJECT_ROOT/common.sh" ]]; then
+        source "$PROJECT_ROOT/config.sh"
+        source "$PROJECT_ROOT/common.sh"
     else
         display_config_help
         return 1  # Return failure status to the caller
@@ -59,10 +64,12 @@ galaxy() {
 
     case "$1" in
         start)
-            "$script_dir/galaxy_start.sh" "${@:2}"
+            source "$script_dir/galaxy_start.sh"
+            start_galaxy "${@:2}"
             ;;
         stop)
-            "$script_dir/galaxy_stop.sh" "${@:2}"
+            source "$script_dir/galaxy_stop.sh"
+            stop_galaxy "${@:2}"
             ;;
         *)
             display_usage
@@ -71,9 +78,10 @@ galaxy() {
     esac
 }
 
+# Create temp directory if it doesn't exist
+create_installer_tmp_directory
 
 ### Instructions for uninstallation and manual cleanup ###
 # Please follow the instructions below if you need to uninstall the Galaxy plugin:
 # 1. Remove the plugin entry, galaxy_control, from your zsh profile, such as ~/.zshrc
 # 2. Delete the plugin directory this script lives in.
-

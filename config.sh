@@ -51,8 +51,16 @@ export GALAXY_INSTALLER_TMP_DIR="temp"
 export SHELL_SCRIPTS_DIR="shell"
 # The location of python helper scripts from root, and common python related scripts and files. Note that the python helper scripts themselves will be in their own subdirectories in the python directory.
 export PYTHON_SCRIPTS_DIR="python"
-# The location of the plugin for controlling galaxy (start, stop, etc).
+# The location of the plugin for controlling galaxy (start, stop, etc). Also will be the name of the plugin.
 export GALAXY_CONTROL_DIR="galaxy_control"
 # Plugin registration script
 export GALAXY_CONTROL_PLUGIN_SCRIPT="galaxy_control.plugin.zsh"
+# Log tailing pid filename
+export TAIL_PID="log_tail"
+# Galaxy service pid filename (its whole process tree is wrapped in a nohup)
+export GALAXY_NOHUP_PID="galaxy_service_nohup"
+# Installer's log file
+export INSTALLER_LOG_FILE="$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log"
+# Log file this installer creates for the embeded Galaxy processes
+export GALAXY_LOG_FILE="$GALAXY_INSTALLER_TMP_DIR/galaxy.log"
 
