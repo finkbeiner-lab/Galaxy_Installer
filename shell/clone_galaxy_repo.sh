@@ -7,17 +7,16 @@ source "$(dirname "$0")/../common.sh"
 # Function to pull down a shallow clone of the Galaxy repo from latest
 pull_repo() {
     if [ ! -d "$GALAXY_DIR" ]; then
-        log_info "Cloning Galaxy repository (shallow)..."
+        log_info "Cloning Galaxy repository (shallow) into $GALAXY_DIR..."
         git clone --depth 1 https://github.com/galaxyproject/galaxy.git "$GALAXY_DIR"
     else
         log_info "Galaxy is already installed. Attempting to fast-forward to the latest version..."
-        cd "$GALAXY_DIR"
         log_info "Checking out Galaxy's main branch 'dev' for updating..."
-        git checkout dev
-        if git pull --depth 1; then
+        git -C "$GALAXY_DIR" checkout dev
+        if git -C "$GALAXY_DIR" pull --depth 1; then
             log_info "Galaxy repository update through fast-forward was successful."
         else
-            log_error "Cannot fast-forward. Your copy of Galaxy has diverged significantly from the official repository. You'll need to resolve a merge manually, or delete $GALAXY_DIR and start fresh."
+            log_error "Cannot fast-forward. Your copy of Galaxy has diverged from the official repository. You can to resolve a merge manually if this is intentional, or delete $GALAXY_DIR and re-run this installer to get on the latest release."
             exit 1
         fi
     fi
@@ -26,10 +25,7 @@ pull_repo() {
 # Function to get the latest tagged release matching the pattern v00.00.00, this filters out "dev" releases and other random tags
 checkout_latest_release() {
     log_info "Finding latest release tag..."
-    cd "$GALAXY_DIR"
-
-    log_info "Fetching tags..."
-    tags=$(git ls-remote --tags --refs origin | awk -F'/' '{print $3}')
+    tags=$(git -C "$GALAXY_DIR" ls-remote --tags --refs origin | awk -F'/' '{print $3}')
 
     # Find the latest release tag matching the pattern v00.00.00
     latest_tag=$(printf "%s\n" "$tags" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
@@ -42,11 +38,11 @@ checkout_latest_release() {
 
     # Fetch the specific tag's code from upstream (as we are working in a shallow clone)
     log_info "Pulling the code down for the tag: $latest_tag..." 
-    git fetch --depth 1 origin tag $latest_tag
+    git -C "$GALAXY_DIR" fetch --depth 1 origin tag $latest_tag
 
     # Check out the latest tagged release
     log_info "Checking out latest release version: $latest_tag..."
-    if git checkout "$latest_tag"; then
+    if git -C "$GALAXY_DIR" checkout "$latest_tag"; then
         log_info "Checked out latest release: $latest_tag"
     else
         log_error "Unable to check out the latest release. Unsure how to continue. You'll need to either resolve manually or simply delete $GALAXY_DIR and re-run this installer."
