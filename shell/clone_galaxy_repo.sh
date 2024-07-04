@@ -4,19 +4,75 @@
 source "$(dirname "$0")/../config.sh"
 source "$(dirname "$0")/../common.sh"  
 
-# Function to pull down a shallow clone of the Galaxy repo from latest
+# Storing the repository URL  in this file, rather than the config, because if it changes this whole script needs to be evaluated for changes.
+GALAXY_REPO_URL="https://github.com/galaxyproject/galaxy.git"
+
+# Function to stash local changes and return a boolean indicating whether there were changes to be stashed
+stash_changes() {
+    local repo_dir=$1
+    local pre_stash_list
+    local post_stash_list
+
+    # Check stash list before stashing
+    pre_stash_list=$(git -C "$repo_dir" stash list)
+
+    # Stash any local changes
+    git -C "$repo_dir" stash push -m "Auto-stash before updating Galaxy repo" > /dev/null 2>&1
+
+    # Check stash list after stashing
+    post_stash_list=$(git -C "$repo_dir" stash list)
+
+    # Return true if changes were stashed, false otherwise
+    [ "$pre_stash_list" != "$post_stash_list" ]
+}
+
+# Function to pull down a shallow clone of the Galaxy repository
 pull_repo() {
     if [ ! -d "$GALAXY_DIR" ]; then
-        log_info "Cloning Galaxy repository (shallow) into $GALAXY_DIR..."
-        git clone --depth 1 https://github.com/galaxyproject/galaxy.git "$GALAXY_DIR"
+        log_info "Cloning Galaxy repository (shallow) from $GALAXY_REPO_URL into $GALAXY_DIR..."
+        git clone --depth 1 "$GALAXY_REPO_URL" "$GALAXY_DIR"
     else
-        log_info "Galaxy is already installed. Attempting to fast-forward to the latest version..."
-        log_info "Checking out Galaxy's main branch 'dev' for updating..."
-        git -C "$GALAXY_DIR" checkout dev
-        if git -C "$GALAXY_DIR" pull --depth 1; then
-            log_info "Galaxy repository update through fast-forward was successful."
+        log_info "Galaxy is already installed. Attempting to get the latest version..."
+        
+       
+       # Stash any local changes
+        log_info "Stashing any local changes..."
+        if stash_changes "$GALAXY_DIR"; then
+            did_stash=true
         else
-            log_error "Cannot fast-forward. Your copy of Galaxy has diverged from the official repository. You can to resolve a merge manually if this is intentional, or delete $GALAXY_DIR and re-run this installer to get on the latest release."
+            did_stash=false
+        fi
+
+        if [ "$did_stash" = true ]; then
+            log_info "Changes stashed successfully."
+        else
+            log_info "No changes to stash."
+        fi
+        
+        log_info "Checking out Galaxy's main branch 'dev' for updating..."
+        if ! git -C "$GALAXY_DIR" checkout dev; then
+            log_error "Failed to checkout 'dev' branch. Perhaps the Galaxy GitHub project has changed its structure and this script needs to be updated: $0"
+            exit 1
+        fi
+
+        # The Galaxy GitHib project is mismanaged in some way where fast-forwards fail regularly, so we'll do a hard reset
+        log_info "Fetching latest changes from the remote repository and performing a hard reset to adopt them..."
+        if git -C "$GALAXY_DIR" fetch --depth 1 origin && git -C "$GALAXY_DIR" reset --hard origin/dev; then
+            log_info "Galaxy repository update through hard reset was successful."
+
+            # Apply stashed changes if any
+            if [ "$did_stash" = true ]; then
+                log_info "Applying stashed changes..."
+                if ! git -C "$GALAXY_DIR" stash pop > /dev/null 2>&1; then
+                    log_error "Failed to apply stashed changes. You may need to resolve conflicts manually in $GALAXY_DIR or delete it and re-run this installer to get a fresh release."
+                    exit 1
+                fi
+            else
+                log_info "No stashed changes that need to be applied."
+            fi
+       else
+            log_error "Cannot get the latest version of the Galaxy GitHub project.. Your copy of Galaxy may have diverged from the official repository. Resolve the merge manually in $GALAXY_DIR or delete it and re-run this installer to get the latest release."
+            log_error "If this reoccurs, the Galaxy GitHub project has likely diverged from us, and this script needs to be updated. $0"
             exit 1
         fi
     fi
