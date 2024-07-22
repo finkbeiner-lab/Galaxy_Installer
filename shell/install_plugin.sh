@@ -31,20 +31,15 @@ copy_plugin_files() {
         log_error "Failed to copy plugin files to $dest_dir"
         exit 1
     fi
+
+    # Update placeholders in all copied files
+    update_placeholders_in_files "$dest_dir"
 }
 
-# Function to update placeholders in the plugin script using Zsh string substitution
-update_plugin_script() {
-    local source_script="$GALAXY_CONTROL_DIR/$GALAXY_CONTROL_PLUGIN_SCRIPT"
-    local dest_script="$PLUGIN_DEST/$GALAXY_CONTROL_DIR/$GALAXY_CONTROL_PLUGIN_SCRIPT"
-    local temp_script_path="$GALAXY_INSTALLER_TMP_DIR/temp_plugin_script.zsh"
+# Function to update placeholders in a file using Zsh string substitution
+update_placeholders_in_files() {
+    local dest_dir="$1"
 
-    # Copy the script to a temporary location
-    cp "$source_script" "$temp_script_path"
-
-    # Read and replace placeholders
-    local script_content=$(<"$temp_script_path")
-   
     # Resolve the project root directory
     local project_root=$(cd "$(dirname "$0")/" && pwd)
 
@@ -57,21 +52,23 @@ update_plugin_script() {
     log_info "Common functions path: $common_sh_path"
     log_info "Project root path: $project_root"
 
-    script_content=${script_content//__CONFIG_SH_PATH__/$config_sh_path}
-    script_content=${script_content//__COMMON_SH_PATH__/$common_sh_path}
-    script_content=${script_content//__PROJECT_ROOT__/$project_root}
-    script_content=${script_content//__SCRIPT_PATH__/"$PLUGIN_DEST/$GALAXY_CONTROL_DIR/$GALAXY_CONTROL_PLUGIN_SCRIPT"}
+    # Loop through all files in the destination directory
+    find "$dest_dir" -type f | while read -r file; do
+        # Read and replace placeholders
+        local file_content=$(<"$file")
+        file_content=${file_content//__CONFIG_SH_PATH__/$config_sh_path}
+        file_content=${file_content//__COMMON_SH_PATH__/$common_sh_path}
+        file_content=${file_content//__PROJECT_ROOT__/$project_root}
+        file_content=${file_content//__SCRIPT_PATH__/"$PLUGIN_DEST/$GALAXY_CONTROL_DIR/$GALAXY_CONTROL_PLUGIN_SCRIPT"}
 
-    # Write the modified content back to the destination
-    echo "$script_content" > "$dest_script"
-
-    # Cleanup the temporary file
-    rm "$temp_script_path"
+        # Write the modified content back to the file
+        echo "$file_content" > "$file"
+    done
 
     if [[ $? -eq 0 ]]; then
-        log_info "Plugin script updated and moved to $dest_script"
+        log_info "All placeholders updated in files at $dest_dir"
     else
-        log_error "Failed to update plugin script at $dest_script"
+        log_error "Failed to update placeholders in files at $dest_dir"
         exit 1
     fi
 }

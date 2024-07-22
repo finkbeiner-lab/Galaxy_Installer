@@ -25,13 +25,28 @@ play_alert_sound() {
     afplay /System/Library/Sounds/Blow.aiff 2>/dev/null || log_warning "Failed to play alert sound."
 }
 
-# Function to create a PID file
+# Function to create a PID file from a PID name
 create_pid_file() {
     echo $1 > "$GALAXY_INSTALLER_TMP_DIR/$2_pid.txt"
     log_info "Created PID file for $2 with PID $1"
 }
 
-# Function to load a PID from a file
+# Function to check if a PID could be loaded by PID name
+check_for_pid() {
+    pid_file="$1_pid.txt"
+    if [[ -e "$pid_file" ]]; then
+        pid=$(cat "$pidfile")
+        if [[ -n "$pid" ]]; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        return 1
+    fi
+}
+
+# Function to load a PID by name from its file
 load_pid() {
     if [ -f "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt" ]; then
         cat "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
@@ -41,7 +56,7 @@ load_pid() {
     fi
 }
 
-# Function to delete a PID file
+# Function to delete a PID file by PID name
 delete_pid_file() {
     if [ -f "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt" ]; then
         rm "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
