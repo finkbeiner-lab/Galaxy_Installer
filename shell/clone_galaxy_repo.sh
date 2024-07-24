@@ -126,6 +126,28 @@ move_existing_galaxy_config() {
     fi
 }
 
+# Attempt to roll the databases forward applying any DDL changes 
+run_sqlalchemy_migrations() {
+    log_info "Checking for Galaxy database migrations..."
+    for db_migration_script in "$GALAXY_DIR"/*_db.sh; do
+        [ -e "$db_migration_script" ] || continue  # Skip if no files match
+        log_info "Found SQLAlchemy migration script: $db_migration_script"
+        
+        output=$("$db_migration_script" upgrade 2>&1)
+        if [ $? -eq 0 ]; then
+            log_info "$output"
+            log_info "$db_migration_script upgrade successful."
+        else
+            log_warning "$output"
+            log_warning "$db_migration_script unsuccessful."
+            log_warning "These database structure migrations seem to fail frequently in the Galaxy project, and often we're unaffected."
+            log_warning "In order to preserve any changes you've made to Galaxy, we're going to move forward even though this migration has failed."
+            log_warning "HOWEVER. If Galaxy fails to start, you'll need to either resolve manually or simply delete $GALAXY_DIR and re-run this installer."
+        fi
+    done
+    log_info "Database migrations complete."
+}
+
 ##############################
 ######## Script Start ########
 ##############################
@@ -142,6 +164,9 @@ pull_repo
 
 # Calculate the latest release tag and check it out (base branch for galaxy is 'dev')
 checkout_latest_release
+
+# Apply any Galaxy database DDL migrations
+run_sqlalchemy_migrations
 
 log_info "Galaxy repository cloned and up to date."
 
