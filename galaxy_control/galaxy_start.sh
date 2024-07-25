@@ -32,6 +32,20 @@ kill_any_running_galaxy_instances() {
     fi
 }
 
+# Function to check if Galaxy is up by querying the main page
+check_galaxy() {
+    log_info "Checking to see if Galaxy is responsive..."
+    for i in {1..600}; do  # Check for up to 30 minutes
+        if curl -s $GALAXY_INSTANCE_URL | grep -q 'Galaxy'; then
+            log_info "Galaxy is live and responsive on $GALAXY_INSTANCE_URL 🥳"
+            return 0
+        fi
+        log_info "Waiting for Galaxy server to spin up... $i/600"
+        sleep 3
+    done
+    log_error "Galaxy server did not start successfully. Take a peek at $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
+}
+
 # Function to start galaxy and main entry point for this script
 start_galaxy() {
     source_dependencies
@@ -56,6 +70,6 @@ start_galaxy() {
     create_pid_file $tail_pid "$TAIL_PID"
     log_info "Captured tail's pid as $tail_pid"
     wait $nohup_pid
-    log_info "If Galaxy booted successfully, it can be found at $GALAXY_INSTANCE_URL"
+    check_galaxy
 }
 
