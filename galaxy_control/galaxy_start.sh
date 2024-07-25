@@ -55,5 +55,7 @@ start_galaxy() {
     tail_pid=$!
     create_pid_file $tail_pid "$TAIL_PID"
     log_info "Captured tail's pid as $tail_pid"
+    wait $nohup_pid
+    log_info "If Galaxy booted successfully, it can be found at $GALAXY_INSTANCE_URL"
 }
 
