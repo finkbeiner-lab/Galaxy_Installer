@@ -51,3 +51,18 @@ There are logs for both this installer project, and for galaxy itself, both stor
 
 ### 2. Slack
 If you need active help with this Galaxy Installer, the best place to go is our Gladstone Institutes Slack in the channel `#galaxy`.
+
+### 3. Clean Slate
+If you don't have any custom tools or workflows that are only local to your machine, you can resolve most issues with a clean install of Galaxy.
+#### Uninstall
+1. (Nearly always required) Delete the galaxy git project directory. Usually `rm -r ~/galaxy`
+2. (Often optional) Uninstall the .zsh plugin
+   - a. Edit your zsh profile with your prefered text editor, usually found `~/.zshrc` and remove the galaxy control plugin entry. For example, change `plugins=(git galaxy_control)` to `plugins=(git)`
+   - b. Remove the plugin script directory, usually `rm -r ~/.oh-my-zsh/custom/plugins/galaxy_control`
+3. (Often optional) Delete and reclone down this git project
+4. (Often optional) Remove the toolshed, usually `rm -r ~/finkbeiner_tool_shed`
+#### Reinstall
+1. Clone this git project somewhere on to your machine
+2. `cd <directory you cloned into>/Galaxy_Installer`
+3. `chmod +x ./setup.sh`
+4. `./setup.sh`
