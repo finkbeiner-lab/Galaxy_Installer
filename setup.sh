@@ -118,7 +118,7 @@ run_script "$SHELL_SCRIPTS_DIR/clone_galaxy_repo.sh"
 run_script "$SHELL_SCRIPTS_DIR/add_conda_to_galaxy_config.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_plugin.sh"
 run_script "$SHELL_SCRIPTS_DIR/install_tool_shed.sh"
-#run_script "$SHELL_SCRIPTS_DIR/install_galaxy.sh"
+run_script "$SHELL_SCRIPTS_DIR/install_galaxy.sh"
 
 # End the overall clock
 end_time=$(date +%s)
