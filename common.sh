@@ -22,7 +22,7 @@ log_error() {
 
 # Function to play an alert sound
 play_alert_sound() {
-    afplay /System/Library/Sounds/Blow.aiff 2>/dev/null || log_warning "Failed to play alert sound."
+    afplay /System/Library/Sounds/Blow.aiff 2>/dev/null || log_warning "Could not play alert sound."
 }
 
 # Function to create a PID file from a PID name
@@ -33,9 +33,9 @@ create_pid_file() {
 
 # Function to check if a PID could be loaded by PID name
 check_for_pid() {
-    pid_file="$1_pid.txt"
+    pid_file="$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
     if [[ -e "$pid_file" ]]; then
-        pid=$(cat "$pidfile")
+        pid=$(cat "$pid_file")
         if [[ -n "$pid" ]]; then
             return 0
         else

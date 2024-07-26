@@ -17,31 +17,27 @@ source_dependencies() {
     source_configs
 }
 
+# Function to kill processes
+kill_process() {
+    pid_name=$1
+    if check_for_pid "$pid_name"; then
+        pid_number=$(load_pid "$pid_name")
+        log_info "Killing $pid_name from pid $pid_number..."
+        kill -TERM -$pid_number &> /dev/null # No zombies. No child zombies.
+        delete_pid_file "$pid_name"
+    fi
+}
+
 # Function to stop galaxy
 stop_galaxy() {
     source_dependencies
     log_info "Shutting down Galaxy..."
     log_info "Calling Galaxy's run.sh stop..."
     "$GALAXY_DIR"/run.sh stop
-
-    if check_for_pid "$GALAXY_NOHUP_PID"; then
-        nohup_pid=$(load_pid "$GALAXY_NOHUP_PID")
-        log_info "Killing run.sh's nohup process group from pid $nohup_pid..."
-        kill -TERM -$nohup_pid &> /dev/null # No zombies. No child zombies.
-        delete_pid_file "$GALAXY_NOHUP_PID"
-    fi
-
+    sleep 0.5
+    kill_process "$GALAXY_NOHUP_PID"
     sync # Dump any remaining log_info lines from tail to the console
-
-    if check_for_pid "$TAIL_PID"; then
-        tail_pid=$(load_pid "$TAIL_PID")
-        log_info "Killing tail's pid $tail_pid..."
-        kill $tail_pid &> /dev/null # Seriously. No zombies.
-        log_info "Waiting for tail to exit..."
-        wait $tail_pid &> /dev/null # The script will outpace tail's ability to shutdown cleanly, so we'll wait on it
-        delete_pid_file "$TAIL_PID"
-    fi
-
+    kill_process "$TAIL_PID"
     log_info "Galaxy shutdown complete."
 }
 
