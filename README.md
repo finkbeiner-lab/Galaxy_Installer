@@ -26,6 +26,9 @@ Installs a small Python stack.
 2. [pipx](https://github.com/pypa/pipx)
 3. [miniconda](https://docs.anaconda.com/free/miniconda/)
 
+### yq
+[yq](https://mikefarah.gitbook.io/yq) is a shell program for reading and writing [YAML](https://yaml.org) configuration files. It's built to match the syntax of the popular [jq](https://github.com/jqlang/jq). It helps us when working with Conda and Galaxy, both of which prefer to format their configuration files in `YAML` syntax. `jq`only supports parsing [json](https://www.json.org/json-en.html), but `yq` supoorts both `json` and `YAML`.
+
 ### Tool Shed
 A Galaxy [Tool Shed](https://galaxyproject.org/toolshed/) is where Galaxy Tools (modules) live. This installs [our own](https://github.com/finkbeiner-lab/Galaxy_Tool_Shed) set of custom tools into Galaxy, and [Planemo](https://planemo.readthedocs.io/en/latest/writing_standalone.html), a python program for creating and testing new tools.
 
