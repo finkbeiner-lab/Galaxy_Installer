@@ -103,7 +103,6 @@ log_info "Starting plugin installation process..."
 
 create_plugin_directory
 copy_plugin_files
-update_plugin_script
 update_plugins_array "$GALAXY_CONTROL_DIR" "$ZSH_PROFILE_PATH" 
 
 log_info "Plugin installation complete."
