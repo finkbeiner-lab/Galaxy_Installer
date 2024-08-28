@@ -28,8 +28,10 @@ export GALAXY_CONFIG_PATH="${GALAXY_DIR}/config/galaxy.yml"
 export DEFAULT_GALAXY_ADMIN_NAME="INSTALL_GALAXY_PROJECT_ADMIN"
 # Defines the default admin user email for this project to create and use.
 export DEFAULT_GALAXY_ADMIN_EMAIL="install-galaxy-project@admin.com"
-# Defines the password for this user. If this is not a personal instance of Galaxy, you'll want to change this in Galaxy after install.
-export DEFAULT_GALAXY_ADMIN_STARING_PW="update-in-galaxy-if-this-instance-is-shared"
+# Defines the password for this user..
+export DEFAULT_GALAXY_ADMIN_STARING_PW="temporary-password"
+# Defines the API key for the default admin user.
+export DEFAULT_GALAXY_ADMIN_API_KEY="123456abcdef7890abcd123456abcdef7890abcd123456abcdef7890abcd"
 
 
 ### Tool Shed ###

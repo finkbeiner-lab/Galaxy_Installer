@@ -106,26 +106,6 @@ checkout_latest_release() {
     fi
 }
 
-# Function to move existing galaxy.yml to temporary directory if it exists
-move_existing_galaxy_config() {
-    if [ -f "$GALAXY_CONFIG_PATH" ]; then
-        log_info "Existing galaxy.yml found. Backing it up into the installers temp directory $GALAXY_INSTALLER_TMP_DIR..."
- 
-        # Generate a random identifier as to not overwrite other backups if the installer is re-run
-        random_id=$(date +%s%N)
-        
-        mv "$GALAXY_CONFIG_PATH" "$GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
-        if [ $? -eq 0 ]; then
-            log_info "galaxy.yml moved to $GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
-        else
-            log_error "Failed to move existing galaxy.yml to $GALAXY_INSTALLER_TMP_DIR"
-            exit 1
-        fi
-    else
-        log_info "No existing galaxy.yml found. Proceeding with setup..."
-    fi
-}
-
 # Attempt to roll the databases forward applying any DDL changes 
 run_sqlalchemy_migrations() {
     log_info "Checking for Galaxy database migrations..."
@@ -156,14 +136,19 @@ run_sqlalchemy_migrations() {
 log_info "Cloning Galaxy..."
 log_info "Galaxy will be cloned into $GALAXY_DIR"
 
-# If we already have a galaxy.yml, we're going to need to back it up and start fresh.
-move_existing_galaxy_config
-
 # Clone down or fast-forward Galaxy repo
 pull_repo
 
 # Calculate the latest release tag and check it out (base branch for galaxy is 'dev')
 checkout_latest_release
+
+# Start the galaxy.yml in a clean state
+log_info "We're going to back up the existing galaxy.yml, and start fresh. If there are custom configurations you've made, you'll need to copy them back in from the backup."
+start_new_galaxy_config "$GALAXY_CONFIG_PATH" "$(dirname "$GALAXY_CONFIG_PATH")/galaxy.yml.sample"
+if [ $? -ne 0 ]; then
+    log_error "Unable to create a new clean galaxy.yml config file. There may be permissions issues or an issue with this install project."
+    exit 1
+fi
 
 # Apply any Galaxy database DDL migrations
 run_sqlalchemy_migrations

@@ -3,40 +3,29 @@
 # Bring in common functions and configs
 source "$(dirname "$0")/../config.sh"
 source "$(dirname "$0")/../common.sh"
+
+# We'll be explicity using the galaxy control plugin in this script, so we need to make sure any changes to the zsh profile are updated in the context (these changes don't propogate once this script exits)
 source $ZSH_PROFILE_PATH
 
-# Function to move existing galaxy.yml to temporary directory if it exists
-move_existing_galaxy_config() {
-    if [ -f "$GALAXY_CONFIG_PATH" ]; then
-        log_info "Existing galaxy.yml found. Backing it up into the installers temp directory $GALAXY_INSTALLER_TMP_DIR..."
-        # Generate a random identifier
-        random_id=$(date +%s%N)
-        mv "$GALAXY_CONFIG_PATH" "$GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
-        if [ $? -eq 0 ]; then
-            log_info "galaxy.yml moved to $GALAXY_INSTALLER_TMP_DIR/galaxy.yml.backup.$random_id"
-        else
-            log_error "Failed to move existing galaxy.yml to $GALAXY_INSTALLER_TMP_DIR"
-            exit 1
-        fi
+# Function to configure Galaxy to use Conda by changing the galaxy.yml
+configure_galaxy_for_conda() {
+    log_info "Configuring Galaxy to use Conda..."
+    conda_prefix=$(conda info --base)
+    log_info "Conda prefix: $conda_prefix"
+    conda_exec=$(command -v conda)
+    log_info "Conda executable: $conda_exec"
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "conda.prefix" "$conda_prefix"
+    local first_result=$?
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "dependency_resolvers[0].conda_exec" "$conda_exec"
+    local second_result=$?
+    if [ $first_result -ne 0 ] || [ $second_result -ne 0 ]; then
+        log_error "Galaxy wasn't configured to use Conda successfully. There is an issue with galaxy.yml."
+        exit 1
     else
-        log_info "No existing galaxy.yml found. Proceeding with setup..."
+        log_info "Galaxy configured to use Conda successfully."
     fi
 }
 
-# Function to create an admin user in Galaxy through `create_galaxy_admin` python helper script
-create_galaxy_admin_user() {
-    log_info "Calling out to python helper script to create a galaxy admin user..."
-    # Call helper python script and capture output
-    "$PYTHON_SCRIPTS_DIR"/call_python_script.sh create_galaxy_admin "$GALAXY_INSTANCE_URL" "$DEFAULT_GALAXY_ADMIN_EMAIL" "$DEFAULT_GALAXY_ADMIN_STARTING_PW" "$DEFAULT_GALAXY_ADMIN_NAME"
-    # Capture the python helper script's exit code
-    local exit_code=$?
-    # Process any failures
-    if [ $exit_code -ne 0 ]; then
-        log_error "Failed to create Galaxy admin user with output: $output"
-        exit $exit_code
-    fi
-    log_info "Successfully created Galaxy admin user."
-}
 
 # Function to install the tools from our tool shed using planemo and the python API
 install_tools() {
@@ -86,13 +75,15 @@ trap_handler() {
 trap 'trap_handler SIGINT' SIGINT
 trap 'trap_handler SIGTERM' SIGTERM
 
-# Start Galaxy in the background and populate global pid variables $nohup_pid and $tail_pid
-log_info "We're going to try to start Galaxy. This can take a while the first time (~20min), and sometimes it looks stuck for a minute or two when it isn't."
-galaxy start
+# Configure Galaxy to use Conda
+configure_galaxy_for_conda
 
-# Create an admin user for Galaxy and capture API key
-log_error "Skipping creating Galaxy Admin User until implemented"
-#create_galaxy_admin_user
+# Create an API key in the Galaxy config
+log_error "TODO: API key"
+
+# Start Galaxy in the background and populate global pid variables $nohup_pid and $tail_pid
+log_info "We're going to try to start Galaxy. This can take a while the first time (~20min) while Galaxy does some installation and configuration,, and sometimes it looks stuck for a minute or two when it isn't."
+galaxy start
 
 # Install our tools from our ToolShed repo
 log_error "Skipping tool installation until implemented"

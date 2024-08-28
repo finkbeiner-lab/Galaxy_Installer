@@ -9,7 +9,7 @@
 script_name=$(basename "${ZSH_ARGZERO:-$0}")
 
 # Function to log informational messages
-log_info() {
+log_info() { 
     local line_number;
     if [ -n "$ZSH_VERSION" ]; then
         # Use funcfiletrace to get the current function's line number in Zsh

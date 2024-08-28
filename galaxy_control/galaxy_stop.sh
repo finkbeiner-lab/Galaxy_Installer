@@ -23,7 +23,7 @@ kill_process() {
     if check_for_pid "$pid_name"; then
         pid_number=$(load_pid "$pid_name")
         log_info "Killing $pid_name from pid $pid_number..."
-        kill -TERM -$pid_number &> /dev/null # No zombies. No child zombies.
+        kill -TERM $pid_number &> /dev/null
         delete_pid_file "$pid_name"
     fi
 }

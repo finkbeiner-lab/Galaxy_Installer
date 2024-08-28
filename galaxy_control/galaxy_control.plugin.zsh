@@ -81,7 +81,8 @@ galaxy() {
     fi
 
     # Resolve the absolute path to the plugin directory, which will contain the installed plugin's scripts 
-    local script_dir="$(dirname $SCRIPT_PATH)" 
+    local script_dir="$(dirname $SCRIPT_PATH)"
+    log_info "Note: Line numbers and script names in log messages are often incorrect when calling from another script into the Galaxy control plugin."
 
     case "$1" in
         start)
