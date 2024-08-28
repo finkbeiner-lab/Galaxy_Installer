@@ -54,13 +54,13 @@ play_alert_sound() {
 
 # Function to create a PID file from a PID name
 create_pid_file() {
-    echo $1 > "$GALAXY_INSTALLER_TMP_DIR/$2_pid.txt"
+    echo $1 > "$GALAXY_INSTALLER_TEMP_DIR/$2_pid.txt"
     log_info "Created PID file for $2 with PID $1"
 }
 
 # Function to check if a PID could be loaded by PID name
 check_for_pid() {
-    pid_file="$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
+    pid_file="$GALAXY_INSTALLER_TEMP_DIR/$1_pid.txt"
     if [[ -e "$pid_file" ]]; then
         pid=$(cat "$pid_file")
         if [[ -n "$pid" ]]; then
@@ -75,8 +75,8 @@ check_for_pid() {
 
 # Function to load a PID by name from its file
 load_pid() {
-    if [ -f "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt" ]; then
-        cat "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
+    if [ -f "$GALAXY_INSTALLER_TEMP_DIR/$1_pid.txt" ]; then
+        cat "$GALAXY_INSTALLER_TEMP_DIR/$1_pid.txt"
     else
         log_error "PID file for $1 not found"
         return 1
@@ -85,8 +85,8 @@ load_pid() {
 
 # Function to delete a PID file by PID name
 delete_pid_file() {
-    if [ -f "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt" ]; then
-        rm "$GALAXY_INSTALLER_TMP_DIR/$1_pid.txt"
+    if [ -f "$GALAXY_INSTALLER_TEMP_DIR/$1_pid.txt" ]; then
+        rm "$GALAXY_INSTALLER_TEMP_DIR/$1_pid.txt"
         log_info "Deleted PID file for $1"
     else
         log_info "No PID file for $1 to delete"
@@ -147,7 +147,7 @@ start_new_galaxy_config() {
         return 1
    fi
    log_info "Setting up a new config from the sample galaxy.yml..."
-   backup_file "$galaxy_config_path" "$GALAXY_INSTALLER_TMP_DIR"
+   backup_file "$galaxy_config_path" "$GALAXY_INSTALLER_TEMP_DIR"
    if [ $? -ne 0 ]; then
         log_error "File backup failed for $galaxy_config_path, we should not continue."
         return 1

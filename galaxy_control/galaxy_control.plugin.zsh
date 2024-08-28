@@ -47,10 +47,10 @@ display_config_help() {
 # Function to ensure the temp directory is still around
 find_or_create_installer_temp_directory() {
     log_info "Checking for Galaxy Installer temp directory..."
-    if [ !  -d "$PROJECT_ROOT/$GALAXY_INSTALLER_TMP_DIR" ]; then
+    if [ !  -d "$PROJECT_ROOT/$GALAXY_INSTALLER_TEMP_DIR" ]; then
         log_info "Install Galaxy temp directory has been moved or deleted. Attempting to recreate it..."
-        if [ -n "$PROJECT_ROOT" &&  -n "$GALAXY_INSTALLER_TMP_DIR" ]; then
-            mkdir -p "$PROJECT_ROOT/$GALAXY_INSTALLER_TMP_DIR"
+        if [ -n "$PROJECT_ROOT" &&  -n "$GALAXY_INSTALLER_TEMP_DIR" ]; then
+            mkdir -p "$PROJECT_ROOT/$GALAXY_INSTALLER_TEMP_DIR"
             if [ $? -eq 0 ]; then
                 log_info "Install Galaxy temp directory was recreated successfully."
                 return 0
@@ -59,13 +59,13 @@ find_or_create_installer_temp_directory() {
                 return 1
             fi
         else
-            log_error "Install Galaxy temp directory path wasn't resolved: $PROJECT_ROOT/$GALAXY_INSTALLER_TMP_DIR"
+            log_error "Install Galaxy temp directory path wasn't resolved: $PROJECT_ROOT/$GALAXY_INSTALLER_TEMP_DIR"
             log_error "Cannot recreate Galaxy temp directory do to some kind of path configuration error. Displaying config help..."
             display_config_help
             return 1
         fi
     else 
-        log_info "Galaxy Installer temp directory found ($PROJECT_ROOT/$GALAXY_INSTALLER_TMP_DIR)"
+        log_info "Galaxy Installer temp directory found ($PROJECT_ROOT/$GALAXY_INSTALLER_TEMP_DIR)"
         return 0
     fi
 }

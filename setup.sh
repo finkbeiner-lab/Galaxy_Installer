@@ -67,26 +67,26 @@ run_script() {
 }
 
 # Function to check if the directory exists and create it or clear it if it already exists
-create_installer_tmp_directory() {
+create_installer_temp_directory() {
     # Make sure we're in project root
     cd "$(dirname "$0")"
-    if [ -d "$GALAXY_INSTALLER_TMP_DIR" ]; then
-        log_info "Directory $GALAXY_INSTALLER_TMP_DIR already exists. Clearing it out..."
+    if [ -d "$GALAXY_INSTALLER_TEMP_DIR" ]; then
+        log_info "Directory $GALAXY_INSTALLER_TEMP_DIR already exists. Clearing it out..."
         # Clear the directory
-        rm -rf "$GALAXY_INSTALLER_TMP_DIR"/*
+        rm -rf "$GALAXY_INSTALLER_TEMP_DIR"/*
         if [ $? -ne 0 ]; then
-            log_error "Failed to clear out directory $GALAXY_INSTALLER_TMP_DIR."
+            log_error "Failed to clear out directory $GALAXY_INSTALLER_TEMP_DIR."
             exit 1
         fi
     else
-        log_info "Directory $GALAXY_INSTALLER_TMP_DIR does not exist. Creating it..."
-        mkdir -p "$GALAXY_INSTALLER_TMP_DIR"
+        log_info "Directory $GALAXY_INSTALLER_TEMP_DIR does not exist. Creating it..."
+        mkdir -p "$GALAXY_INSTALLER_TEMP_DIR"
         if [ $? -ne 0 ]; then
-            log_error "Failed to create directory $GALAXY_INSTALLER_TMP_DIR."
+            log_error "Failed to create directory $GALAXY_INSTALLER_TEMP_DIR."
             exit 1
         fi
     fi
-    log_info "Directory $GALAXY_INSTALLER_TMP_DIR prepared successfully."
+    log_info "Directory $GALAXY_INSTALLER_TEMP_DIR prepared successfully."
 }
 
 ###############################
@@ -99,7 +99,7 @@ cd "$(dirname "$0")"
 
 # Create or clear out our temp directory
 # This needs to happen early as it will contain the log from this file, and logging above it probably explodes.
-create_installer_tmp_directory
+create_installer_temp_directory
 
 log_info "Installing Galaxy and its dependencies on macOS..."
 

@@ -48,7 +48,7 @@ export TOOL_SHED_OWNER_NAME="finkbeiner-lab"
 
 ### Install Galaxy Project Internal Structure ###
 # The location this installer will use for logs and temporary files..
-export GALAXY_INSTALLER_TMP_DIR="temp"
+export GALAXY_INSTALLER_TEMP_DIR="temp"
 # The location of shell scripts from root. Note that the common files that a user might change, such as this config, will live in the project root, regardless if they are shell-based.
 export SHELL_SCRIPTS_DIR="shell"
 # The location of python helper scripts from root, and common python related scripts and files. Note that the python helper scripts themselves will be in their own subdirectories in the python directory.
@@ -62,7 +62,7 @@ export TAIL_PID="log_tail"
 # Galaxy service pid filename (its whole process tree is wrapped in a nohup)
 export GALAXY_NOHUP_PID="galaxy_service_nohup"
 # Installer's log file
-export INSTALLER_LOG_FILE="$GALAXY_INSTALLER_TMP_DIR/install_galaxy.log"
+export INSTALLER_LOG_FILE="$GALAXY_INSTALLER_TEMP_DIR/install_galaxy.log"
 # Log file this installer creates for the embeded Galaxy processes
-export GALAXY_LOG_FILE="$GALAXY_INSTALLER_TMP_DIR/galaxy.log"
+export GALAXY_LOG_FILE="$GALAXY_INSTALLER_TEMP_DIR/galaxy.log"
 

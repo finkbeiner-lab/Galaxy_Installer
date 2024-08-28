@@ -43,7 +43,7 @@ check_galaxy() {
         log_info "Waiting for Galaxy server to spin up... $i/600"
         sleep 3
     done
-    log_error "Galaxy server did not start successfully. Take a peek at $GALAXY_INSTALLER_TMP_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
+    log_error "Galaxy server did not start successfully. Take a peek at $GALAXY_INSTALLER_TEMP_DIR/install_galaxy.log and $GALAXY_DIR/galaxy.log"
 }
 
 # Function to start galaxy and main entry point for this script
