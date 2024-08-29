@@ -68,7 +68,11 @@ run_script() {
 
 # Function to check if the directory exists and create it or clear it if it already exists
 create_installer_temp_directory() {
-    temp_absolute_path="$(cd "$(dirname "$0")/$GALAXY_INSTALLER_TEMP_DIR" && pwd)"
+    temp_absolute_path=$(resolve_absolute_path "$GALAXY_INSTALLER_TEMP_DIR")
+    if [ $? -ne 0 ]; then
+        log_error "Could not resolve absolute path: ${temp_absolute_path} from current path: $(dirname "$0")"
+        exit 1
+    fi
     if [ -d "$temp_absolute_path" ]; then
         log_info "Directory $temp_absolute_path already exists. Cleaning up older files..."
         #Remove all but the most recent 10 files older than 30 days
@@ -86,6 +90,19 @@ create_installer_temp_directory() {
         fi
     fi
     log_info "Directory $temp_absolute_path prepared successfully."
+}
+
+# Function to resolve the absolute path from a relative path
+resolve_absolute_path() {
+    local relative_path="$1"
+    # Check if the relative path is empty
+    if [ -z "$relative_path" ]; then
+        log_error "The relative path is not set or is empty."
+        return 1
+    fi
+    # Resolve the absolute path
+    local script_dir="$(cd "$(dirname "$0")" && pwd)"
+    echo "$script_dir/$relative_path"
 }
 
 # Function to retrive the ISO 8601 time from thirty days ago for different UNIX varients
