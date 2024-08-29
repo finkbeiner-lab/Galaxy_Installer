@@ -52,6 +52,41 @@ play_alert_sound() {
     afplay /System/Library/Sounds/Blow.aiff 2>/dev/null || log_warning "Could not play alert sound."
 }
 
+# Function to delete unused files from a directory
+# Optional parameter to keep all files newer than a given ISO 8601 timestamp
+# Optional parameter to keep a number of the newest files regardless of timestamp
+clean_directory() {
+    local directory="$1" # No default value, must be provided
+    local timestamp="${2:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}" # Default to current time in ISO 8601 format
+    local min_files_to_keep="${3:-0}" # Default to 0
+    # Check if the directory parameter is provided
+    if [ -z "$directory" ]; then
+        log_error "You must pass in the parameter for the directory to clean up."
+        return 1
+    fi
+    # Check if the directory exists
+    if [ ! -d "$directory" ]; then
+        log_error "Directory '$directory' for cleaning does not exist."
+        return 1
+    fi
+    # Check if the script has read and write permissions for the directory
+    if [ ! -r "$directory" ] || [ ! -w "$directory" ]; then
+        log_error "Permission denied: Cannot read or write to directory '$directory'. Cannot continue with clean."
+        return 1
+    fi
+    # Count the number of files in the directory
+    local file_count=$(find "$directory" -type f | wc -l | xargs)
+    # If the directory has fewer files than min_files_to_keep, do nothing
+    if [ "$file_count" -le "$min_files_to_keep" ]; then
+        log_info "No files to delete. The directory has $file_count files, which is less than or equal to the minimum required files to keep ($min_files_to_keep)."
+        return 0
+    fi
+    # Find and delete files older than the given ISO 8601 timestamp, keeping the minimum number of newest files
+    find "$directory" -type f ! -newermt "$timestamp" | sort | head -n -"$min_files_to_keep" | xargs -I {} rm -- {}
+    log_info "Cleaned directory '$directory'. Deleted files older than the given timestamp, keeping the $min_files_to_keep newest files."
+}
+
+
 # Function to create a PID file from a PID name
 create_pid_file() {
     echo $1 > "$GALAXY_INSTALLER_TEMP_DIR/$2_pid.txt"
@@ -121,6 +156,10 @@ backup_file() {
         log_error "Temporary directory argument is empty. It must be passed in."
         return 1
     fi
+    if [ ! -f "$file_path" ]; then
+        log_error "$file_path not found, nothing to back up."
+        return 1
+    fi
     log_info "Backing up $file_path to $temp_dir..."  
     local filename=$(basename "$file_path")
     local timestamp=$(date +"%Y%m%d_%H%M%S")
@@ -146,13 +185,15 @@ start_new_galaxy_config() {
         log_error "Galaxy sample config path argument is empty. It must be passed in."
         return 1
    fi
-   log_info "Setting up a new config from the sample galaxy.yml..."
-   backup_file "$galaxy_config_path" "$GALAXY_INSTALLER_TEMP_DIR"
-   if [ $? -ne 0 ]; then
-        log_error "File backup failed for $galaxy_config_path, we should not continue."
-        return 1
+   if [ -f "$galaxy_config_path" ]; then
+        backup_file "$galaxy_config_path" "$GALAXY_INSTALLER_TEMP_DIR"
+       if [ $? -ne 0 ]; then
+            log_error "File backup failed for $galaxy_config_path, we should not continue."
+            return 1
+       fi
    fi
-   log_info "Coping over the sample config from $galaxy_sample_config_path to $galaxy_config_path..."
+   log_info "Setting up a new config from the sample galaxy.yml..."
+   log_info "Coping from $galaxy_sample_config_path to $galaxy_config_path..."
    cp "$galaxy_sample_config_path" "$galaxy_config_path"
    if [ $? -ne 0 ]; then
         log_error "Could not copy $galaxy_sample_config_path to $galaxy_config_path"

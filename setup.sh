@@ -68,25 +68,36 @@ run_script() {
 
 # Function to check if the directory exists and create it or clear it if it already exists
 create_installer_temp_directory() {
-    # Make sure we're in project root
-    cd "$(dirname "$0")"
-    if [ -d "$GALAXY_INSTALLER_TEMP_DIR" ]; then
-        log_info "Directory $GALAXY_INSTALLER_TEMP_DIR already exists. Clearing it out..."
-        # Clear the directory
-        rm -rf "$GALAXY_INSTALLER_TEMP_DIR"/*
+    temp_absolute_path="$(cd "$(dirname "$0")/$GALAXY_INSTALLER_TEMP_DIR" && pwd)"
+    if [ -d "$temp_absolute_path" ]; then
+        log_info "Directory $temp_absolute_path already exists. Cleaning up older files..."
+        #Remove all but the most recent 10 files older than 30 days
+        clean_directory "$temp_absolute_path" thirty_days_ago_iso8601 10
         if [ $? -ne 0 ]; then
-            log_error "Failed to clear out directory $GALAXY_INSTALLER_TEMP_DIR."
+            log_error "Failed to clean directory '$temp_absolute_path'. Exiting."
             exit 1
         fi
     else
-        log_info "Directory $GALAXY_INSTALLER_TEMP_DIR does not exist. Creating it..."
-        mkdir -p "$GALAXY_INSTALLER_TEMP_DIR"
+        log_info "Directory $temp_absolute_path does not exist. Creating it..."
+        mkdir -p "$temp_absolute_path"
         if [ $? -ne 0 ]; then
-            log_error "Failed to create directory $GALAXY_INSTALLER_TEMP_DIR."
+            log_error "Failed to create directory $temp_absolute_path."
             exit 1
         fi
     fi
-    log_info "Directory $GALAXY_INSTALLER_TEMP_DIR prepared successfully."
+    log_info "Directory $temp_absolute_path prepared successfully."
+}
+
+# Function to retrive the ISO 8601 time from thirty days ago for different UNIX varients
+thirty_days_ago_iso8601() {
+    if date --version >/dev/null 2>&1; then
+        # GNU date (Linux)
+        thirty_days_ago=$(date -u -d "30 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+    else
+        # BSD/macOS date
+        thirty_days_ago=$(date -u -v -30d +"%Y-%m-%dT%H:%M:%SZ")
+    fi
+    echo $thirty_days_ago
 }
 
 ###############################
