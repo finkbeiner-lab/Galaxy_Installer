@@ -26,6 +26,26 @@ configure_galaxy_for_conda() {
     fi
 }
 
+# Function to configure Galaxy admin user details in the Galaxy configuration
+configure_galaxy_admin_user() {
+    log_info "Configuring Galaxy admin user..."
+    # Set the admin email and user details
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_users" "$DEFAULT_GALAXY_ADMIN_EMAIL"
+    local email_result=$?
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_password" "$DEFAULT_GALAXY_ADMIN_STARING_PW"
+    local password_result=$?
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY"
+    local api_key_result=$?
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_user_name" "$DEFAULT_GALAXY_ADMIN_NAME"
+    local name_result=$?
+    # Check if all configurations were successful
+    if [ $email_result -ne 0 ] || [ $password_result -ne 0 ] || [ $api_key_result -ne 0 ] || [ $name_result -ne 0 ]; then
+        log_error "Failed to configure Galaxy admin user details in $GALAXY_CONFIG_PATH."
+        exit 1
+    else
+        log_info "Galaxy admin user details configured successfully in $GALAXY_CONFIG_PATH."
+    fi
+}
 
 # Function to install the tools from our tool shed using planemo and the python API
 install_tools() {
@@ -78,8 +98,8 @@ trap 'trap_handler SIGTERM' SIGTERM
 # Configure Galaxy to use Conda
 configure_galaxy_for_conda
 
-# Create an API key in the Galaxy config
-log_error "TODO: API key"
+# Configure the Admin user
+configure_galaxy_admin_user
 
 # Start Galaxy in the background and populate global pid variables $nohup_pid and $tail_pid
 log_info "We're going to try to start Galaxy. This can take a while the first time (~20min) while Galaxy does some installation and configuration,, and sometimes it looks stuck for a minute or two when it isn't."
