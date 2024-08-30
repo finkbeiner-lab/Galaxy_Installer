@@ -5,8 +5,11 @@
 # It is important to keep this in lockstep with common.py to retain consistency in the outputs in our shell scripts and python scripts.
 #
 
-# This grabs the calling script's name in both bash and zsh
-script_name=$(basename "${ZSH_ARGZERO:-$0}")
+# This grabs the calling script's name in both bash and zsh, with a check for invalid `ZSH_ARGZERO`.
+script_name=$(basename -- "${ZSH_ARGZERO:-$0}")
+if [[ "$script_name" == -* ]]; then
+    script_name=$(basename -- "$0")
+fi
 
 # Function to log informational messages
 log_info() { 
@@ -57,13 +60,8 @@ play_alert_sound() {
 # Optional parameter to keep a number of the newest files regardless of timestamp
 clean_directory() {
     local directory="$1" # No default value, must be provided
-    local timestamp="${2:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}" # Default to current time in ISO 8601 format
+    local timestamp="${2:-$(date -u +"%Y-%m-%d %H:%M:%S")}" # Default to current time in find-compatible format
     local min_files_to_keep="${3:-0}" # Default to 0
-    # Check if the directory parameter is provided
-    if [ -z "$directory" ]; then
-        log_error "You must pass in the parameter for the directory to clean up."
-        return 1
-    fi
     # Check if the directory exists
     if [ ! -d "$directory" ]; then
         log_error "Directory '$directory' for cleaning does not exist."
@@ -76,16 +74,20 @@ clean_directory() {
     fi
     # Count the number of files in the directory
     local file_count=$(find "$directory" -type f | wc -l | xargs)
-    # If the directory has fewer files than min_files_to_keep, do nothing
-    if [ "$file_count" -le "$min_files_to_keep" ]; then
+    # Calculate the number of files to delete
+    local files_to_delete=$(($file_count - $min_files_to_keep))
+    # Delete any files we need to
+    if [ "$files_to_delete" -gt 0 ]; then
+        find "$directory" -type f ! -newermt "$timestamp" | sort | head -n "$files_to_delete" | xargs -I {} rm --
+        if [ $? -ne 0 ]; then
+            log_error "Failed to delete files in directory '$directory'."
+            return 1
+        fi
+        log_info "Cleaned directory '$directory'. Deleted $files_to_delete file(s) older than the given timestamp, keeping the $min_files_to_keep most recent files."
+    else
         log_info "No files to delete. The directory has $file_count files, which is less than or equal to the minimum required files to keep ($min_files_to_keep)."
-        return 0
     fi
-    # Find and delete files older than the given ISO 8601 timestamp, keeping the minimum number of newest files
-    find "$directory" -type f ! -newermt "$timestamp" | sort | head -n -"$min_files_to_keep" | xargs -I {} rm -- {}
-    log_info "Cleaned directory '$directory'. Deleted files older than the given timestamp, keeping the $min_files_to_keep newest files."
 }
-
 
 # Function to create a PID file from a PID name
 create_pid_file() {
@@ -202,32 +204,28 @@ start_new_galaxy_config() {
    log_info "New galaxy.yml config created successfully at $galaxy_config_path"
 }
 
-# Function to create a change in the config (add or modify)
+# Function to create or modify a config key/value pair, handling commented-out keys
 change_galaxy_config() {
     local galaxy_config_path="$1"
-    local config_key="$2"
+    local full_config_key_path="$2"
     local config_value="$3"
-
     if ! check_for_galaxy_config "$galaxy_config_path"; then    
         log_error "Failed to set up a working galaxy.yml config file."
         return 1
     fi
-
+    # Uncomment the key if it's commented out
+    sed -i.bak -E "s/^#\s*($full_config_key_path\s*:.*)/\1/" "$galaxy_config_path"
     # Validate the YAML file before making changes
     if ! yq eval '.' "$galaxy_config_path" > /dev/null 2>&1; then
         log_error "The YAML syntax isn't currently correct in $galaxy_config_path, so we will not continue with changing it."
         return 1
     fi
-
-    # Use yq to update the configuration file
-    yq eval ".\"$config_key\" = \"$config_value\"" -i "$galaxy_config_path"
-
+    # Modify the key based on the full path provided
+    yq eval ".${full_config_key_path} = \"$config_value\"" -i "$galaxy_config_path"
     # Validate the YAML file after making changes
     if ! yq eval '.' "$galaxy_config_path" > /dev/null 2>&1; then
         log_error "The YAML syntax check failed after making an update in $galaxy_config_path. This project needs to be debugged for this error."
         return 1
     fi
-
-    log_info "$galaxy_config_path has been updated. $config_key set to $config_value"
+    log_info "$galaxy_config_path has been updated. ${full_config_key_path} set to $config_value"
 }
-

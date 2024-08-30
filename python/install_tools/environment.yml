@@ -1,0 +1,10 @@
+name: install_tools
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3
+  - pip         # Ensure pip is available in the environment
+  - requests    # bioblend depends on requests
+  - pip:
+    - bioblend  # Install bioblend via pip

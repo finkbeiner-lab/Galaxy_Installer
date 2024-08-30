@@ -53,6 +53,8 @@ export GALAXY_INSTALLER_TEMP_DIR="temp"
 export SHELL_SCRIPTS_DIR="shell"
 # The location of python helper scripts from root, and common python related scripts and files. Note that the python helper scripts themselves will be in their own subdirectories in the python directory.
 export PYTHON_SCRIPTS_DIR="python"
+# The location of the helper script for calling into python from shell
+export PYTHON_HELPER_SCRIPT="${PYTHON_SCRIPTS_DIR}/call_python_script.sh"
 # The location of the plugin for controlling galaxy (start, stop, etc). Also will be the name of the plugin.
 export GALAXY_CONTROL_DIR="galaxy_control"
 # Plugin registration script

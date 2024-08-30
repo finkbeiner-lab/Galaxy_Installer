@@ -73,10 +73,13 @@ create_installer_temp_directory() {
         log_error "Could not resolve absolute path: ${temp_absolute_path} from current path: $(dirname "$0")"
         exit 1
     fi
+
     if [ -d "$temp_absolute_path" ]; then
         log_info "Directory $temp_absolute_path already exists. Cleaning up older files..."
-        #Remove all but the most recent 10 files older than 30 days
-        clean_directory "$temp_absolute_path" thirty_days_ago_iso8601 10
+        # Get the timestamp for 30 days ago using the generic function
+        local timestamp=$(days_ago_iso8601 30)
+        # Remove all but the most recent 10 files older than 30 days
+        clean_directory "$temp_absolute_path" "$timestamp" 10
         if [ $? -ne 0 ]; then
             log_error "Failed to clean directory '$temp_absolute_path'. Exiting."
             exit 1
@@ -84,7 +87,7 @@ create_installer_temp_directory() {
     else
         log_info "Directory $temp_absolute_path does not exist. Creating it..."
         mkdir -p "$temp_absolute_path"
-        if [ $? -ne 0 ]; then
+        if [ $? -ne 0 ]; then                                                                                                                                                                       
             log_error "Failed to create directory $temp_absolute_path."
             exit 1
         fi
@@ -105,16 +108,16 @@ resolve_absolute_path() {
     echo "$script_dir/$relative_path"
 }
 
-# Function to retrive the ISO 8601 time from thirty days ago for different UNIX varients
-thirty_days_ago_iso8601() {
+# Function to get the date X days ago, defaults to current date and time
+days_ago_iso8601() {
+    local days_ago="${1:-0}"
     if date --version >/dev/null 2>&1; then
         # GNU date (Linux)
-        thirty_days_ago=$(date -u -d "30 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+        date -u -d "$days_ago days ago" +"%Y-%m-%d %H:%M:%S"
     else
         # BSD/macOS date
-        thirty_days_ago=$(date -u -v -30d +"%Y-%m-%dT%H:%M:%SZ")
+        date -u -v -"${days_ago}d" +"%Y-%m-%d %H:%M:%S"
     fi
-    echo $thirty_days_ago
 }
 
 ###############################

@@ -10,15 +10,25 @@ source $ZSH_PROFILE_PATH
 # Function to configure Galaxy to use Conda by changing the galaxy.yml
 configure_galaxy_for_conda() {
     log_info "Configuring Galaxy to use Conda..."
+    
+    # Get the Conda prefix and executable path
     conda_prefix=$(conda info --base)
     log_info "Conda prefix: $conda_prefix"
     conda_exec=$(command -v conda)
     log_info "Conda executable: $conda_exec"
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "conda.prefix" "$conda_prefix"
+    
+    # Update the galaxy.yml file with the correct structure
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.conda.prefix" "$conda_prefix"
     local first_result=$?
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "dependency_resolvers[0].conda_exec" "$conda_exec"
+    
+    # Ensure that the dependency resolver includes a type
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.dependency_resolvers[0].type" "conda"
+    local type_result=$?
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.dependency_resolvers[0].conda_exec" "$conda_exec"
     local second_result=$?
-    if [ $first_result -ne 0 ] || [ $second_result -ne 0 ]; then
+    
+    # Check if all updates were successful
+    if [ $first_result -ne 0 ] || [ $type_result -ne 0 ] || [ $second_result -ne 0 ]; then
         log_error "Galaxy wasn't configured to use Conda successfully. There is an issue with galaxy.yml."
         exit 1
     else
@@ -29,17 +39,13 @@ configure_galaxy_for_conda() {
 # Function to configure Galaxy admin user details in the Galaxy configuration
 configure_galaxy_admin_user() {
     log_info "Configuring Galaxy admin user..."
-    # Set the admin email and user details
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_users" "$DEFAULT_GALAXY_ADMIN_EMAIL"
-    local email_result=$?
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_password" "$DEFAULT_GALAXY_ADMIN_STARING_PW"
-    local password_result=$?
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY"
-    local api_key_result=$?
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "admin_user_name" "$DEFAULT_GALAXY_ADMIN_NAME"
-    local name_result=$?
-    # Check if all configurations were successful
-    if [ $email_result -ne 0 ] || [ $password_result -ne 0 ] || [ $api_key_result -ne 0 ] || [ $name_result -ne 0 ]; then
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_users" "$DEFAULT_GALAXY_ADMIN_EMAIL"
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_password" "$DEFAULT_GALAXY_ADMIN_STARING_PW"
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY"
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_user_name" "$DEFAULT_GALAXY_ADMIN_NAME"
+    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.conda.prefix" "/Users/benjaminbrumbaugh/miniconda3"
+    
+    if [ $? -ne 0 ]; then
         log_error "Failed to configure Galaxy admin user details in $GALAXY_CONFIG_PATH."
         exit 1
     else
@@ -47,24 +53,17 @@ configure_galaxy_admin_user() {
     fi
 }
 
-# Function to install the tools from our tool shed using planemo and the python API
+# Function to install the tools from our ToolShed repo using BioBlend
 install_tools() {
-    log_info "Discovering and installing tools from $TOOL_SHED_DIR/ into Galaxy $GALAXY_DIR/..."
-    log_info "Running planemo ci_find_tools to discover tools..."
-    tool_files=$(planemo ci_find_tools "$TOOL_SHED_DIR")
-    for tool_file in $tool_files; do
-        tool_dir=$(dirname "$tool_file")
-        log_info "Preparing tool in directory $tool_dir..."
-        if [ -f "$tool_dir/.shed.yml" ]; then
-            log_info "Installing tool from $tool_dir using Galaxy API..."
-            python3 install_tool.py "$tool_dir/.shed.yml" "$GALAXY_API_KEY" "$GALAXY_INSTANCE_URL"
-        else
-            log_error "Missing .shed.yml in $tool_dir"
-            galaxy stop
-            exit 1
-        fi
-    done
-    log_info "All tools installed successfully."
+    log_info "Installing tools into Galaxy using BioBlend..."
+    # Call the Python script to install tools using zsh
+    zsh "$PYTHON_HELPER_SCRIPT" "install_tools" "$DEFAULT_GALAXY_ADMIN_API_KEY" "$GALAXY_INSTANCE_URL" "$TOOL_SHED_NAME" "$TOOL_SHED_OWNER_NAME"
+    if [ $? -ne 0 ]; then
+        log_error "Tool installation failed with python helper."
+        galaxy stop
+        exit 1
+    fi
+    log_info "Tools installed successfully."
 }
 
 # Function to verify tools are working
@@ -106,8 +105,7 @@ log_info "We're going to try to start Galaxy. This can take a while the first ti
 galaxy start
 
 # Install our tools from our ToolShed repo
-log_error "Skipping tool installation until implemented"
-# install_tools
+install_tools
 
 # Test a tool from our toolshed
 log_error "Skipping verifying tools until implemented"
