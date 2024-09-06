@@ -209,23 +209,33 @@ change_galaxy_config() {
     local galaxy_config_path="$1"
     local full_config_key_path="$2"
     local config_value="$3"
+    
+    # Backup the existing YAML file
+    cp "$galaxy_config_path" "${galaxy_config_path}.bak"
+
     if ! check_for_galaxy_config "$galaxy_config_path"; then    
         log_error "Failed to set up a working galaxy.yml config file."
         return 1
     fi
-    # Uncomment the key if it's commented out
+
+    # Uncomment only the specific key if it's commented out
     sed -i.bak -E "s/^#\s*($full_config_key_path\s*:.*)/\1/" "$galaxy_config_path"
+
     # Validate the YAML file before making changes
     if ! yq eval '.' "$galaxy_config_path" > /dev/null 2>&1; then
         log_error "The YAML syntax isn't currently correct in $galaxy_config_path, so we will not continue with changing it."
         return 1
     fi
-    # Modify the key based on the full path provided
+
+    # Modify the specific key-value pair
     yq eval ".${full_config_key_path} = \"$config_value\"" -i "$galaxy_config_path"
+
     # Validate the YAML file after making changes
     if ! yq eval '.' "$galaxy_config_path" > /dev/null 2>&1; then
         log_error "The YAML syntax check failed after making an update in $galaxy_config_path. This project needs to be debugged for this error."
         return 1
     fi
+
     log_info "$galaxy_config_path has been updated. ${full_config_key_path} set to $config_value"
 }
+

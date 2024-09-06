@@ -23,7 +23,7 @@ export GALAXY_DIR="${INSTALLATION_HOME}/galaxy"
 # NOTE! This currently only changes where we look for Galaxy. It doesn't currently change any configs in Galaxy's cloned repo to actually stand it up at some other URL.
 export GALAXY_INSTANCE_URL="http://localhost:8080"
 # Defines where our Galaxy config info will go.
-export GALAXY_CONFIG_PATH="${GALAXY_DIR}/config/galaxy.yml"
+export GALAXY_CONFIG_FILE="${GALAXY_DIR}/config/galaxy.yml"
 # Defines the default admin username for this project to create and use.
 export DEFAULT_GALAXY_ADMIN_NAME="INSTALL_GALAXY_PROJECT_ADMIN"
 # Defines the default admin user email for this project to create and use.

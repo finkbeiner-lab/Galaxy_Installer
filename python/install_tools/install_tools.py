@@ -21,13 +21,11 @@ def install_repository(galaxy_instance, tool_shed_url, repository_name, reposito
 # Function to parse command-line arguments
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Install tools into Galaxy from a Tool Shed repository using BioBlend.")
-    
-    parser.add_argument("api_key", help="The API key for the Galaxy admin user.")
-    parser.add_argument("galaxy_url", help="The URL of the Galaxy instance.")
-    parser.add_argument("repository_name", help="The name of the Tool Shed repository to install.")
-    parser.add_argument("repository_owner", help="The owner of the Tool Shed repository.")
-    parser.add_argument("--tool-shed-url", default="https://toolshed.g2.bx.psu.edu/", help="The URL of the Tool Shed (default: https://toolshed.g2.bx.psu.edu/).")
-
+    parser.add_argument("--api_key", required=True, help="The API key for the Galaxy admin user.")
+    parser.add_argument("--galaxy_url", required=True, help="The URL of the Galaxy instance.")
+    parser.add_argument("--repository_name", required=True, help="The name of the Tool Shed repository to install.")
+    parser.add_argument("--repository_owner", required=True, help="The owner of the Tool Shed repository.")
+    parser.add_argument("--tool_shed_url", default="https://toolshed.g2.bx.psu.edu/", help="The URL of the Tool Shed (default: https://toolshed.g2.bx.psu.edu/).")
     return parser.parse_args()
 
 # Main function

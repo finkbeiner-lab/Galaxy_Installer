@@ -7,17 +7,27 @@ source "$(dirname "$0")/../common.sh"
 # Function to remove a Conda environment
 remove_conda_environment() {
     local conda_environment_name="$1"
+    # Get the currently active Conda environment
+    local active_conda_environment=$(basename "$CONDA_PREFIX")
+    # Check if the environment exists
     if conda_env_exists "$conda_environment_name"; then
-        log_info "Conda environment '${conda_environment_name}' already exists. Removing it..."
+        # Check if the current environment is the one being removed
+        if [ "$active_conda_environment" = "$conda_environment_name" ]; then
+            log_info "You are currently in the '${conda_environment_name}' environment. Deactivating..."
+            conda deactivate
+        fi
+        log_info "Removing Conda environment '${conda_environment_name}'..."
         conda env remove -n "$conda_environment_name" --yes
+
+        # Check if removal was successful
         if [ $? -eq 0 ]; then
-            log_info "Conda environment removed successfully."
+            log_info "Conda environment '${conda_environment_name}' removed successfully."
         else
-            log_error "Failed to remove Conda environment."
+            log_error "Failed to remove Conda environment '${conda_environment_name}'."
             exit 1
         fi
     else
-        log_info "No existing Conda environment to remove."
+        log_info "No existing Conda environment '${conda_environment_name}' to remove."
     fi
 }
 

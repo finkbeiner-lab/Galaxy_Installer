@@ -18,13 +18,13 @@ configure_galaxy_for_conda() {
     log_info "Conda executable: $conda_exec"
     
     # Update the galaxy.yml file with the correct structure
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.conda.prefix" "$conda_prefix"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.conda.prefix" "$conda_prefix"
     local first_result=$?
     
     # Ensure that the dependency resolver includes a type
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.dependency_resolvers[0].type" "conda"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.dependency_resolvers[0].type" "conda"
     local type_result=$?
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.dependency_resolvers[0].conda_exec" "$conda_exec"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.dependency_resolvers[0].conda_exec" "$conda_exec"
     local second_result=$?
     
     # Check if all updates were successful
@@ -38,18 +38,20 @@ configure_galaxy_for_conda() {
 
 # Function to configure Galaxy admin user details in the Galaxy configuration
 configure_galaxy_admin_user() {
+    log_error "Making change to welcome_url field for testing..."
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.welcome_url" "http://www.froctopus.com/"
     log_info "Configuring Galaxy admin user..."
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_users" "$DEFAULT_GALAXY_ADMIN_EMAIL"
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_password" "$DEFAULT_GALAXY_ADMIN_STARING_PW"
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY"
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.admin_user_name" "$DEFAULT_GALAXY_ADMIN_NAME"
-    change_galaxy_config "$GALAXY_CONFIG_PATH" "galaxy.conda.prefix" "/Users/benjaminbrumbaugh/miniconda3"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_users" "$DEFAULT_GALAXY_ADMIN_EMAIL"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_password" "$DEFAULT_GALAXY_ADMIN_STARING_PW"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_user_name" "$DEFAULT_GALAXY_ADMIN_NAME"
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.conda.prefix" "/Users/benjaminbrumbaugh/miniconda3"
     
     if [ $? -ne 0 ]; then
-        log_error "Failed to configure Galaxy admin user details in $GALAXY_CONFIG_PATH."
+        log_error "Failed to configure Galaxy admin user details in $GALAXY_CONFIG_FILE."
         exit 1
     else
-        log_info "Galaxy admin user details configured successfully in $GALAXY_CONFIG_PATH."
+        log_info "Galaxy admin user details configured successfully in $GALAXY_CONFIG_FILE."
     fi
 }
 
@@ -57,7 +59,7 @@ configure_galaxy_admin_user() {
 install_tools() {
     log_info "Installing tools into Galaxy using BioBlend..."
     # Call the Python script to install tools using zsh
-    zsh "$PYTHON_HELPER_SCRIPT" "install_tools" "$DEFAULT_GALAXY_ADMIN_API_KEY" "$GALAXY_INSTANCE_URL" "$TOOL_SHED_NAME" "$TOOL_SHED_OWNER_NAME"
+    zsh "$PYTHON_HELPER_SCRIPT" "install_tools" "--api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY" "--galaxy_url" "$GALAXY_INSTANCE_URL" "--repository_name" "$TOOL_SHED_NAME" "--repository_owner" "$TOOL_SHED_OWNER_NAME"
     if [ $? -ne 0 ]; then
         log_error "Tool installation failed with python helper."
         galaxy stop

@@ -61,7 +61,7 @@ start_galaxy() {
         log_error "GALAXY_LOG_FILE varaible wasn't resolved to a value. $0 needs to be debugged for config loading issues."
         return 1
     fi
-    nohup "$GALAXY_DIR"/run.sh start &> "$GALAXY_LOG_FILE" < /dev/null &
+    nohup "$GALAXY_DIR"/run.sh --config $GALAXY_CONFIG_FILE start &> "$GALAXY_LOG_FILE" < /dev/null &
     nohup_pid=$!
     create_pid_file $nohup_pid "$GALAXY_NOHUP_PID"
     log_info "Captured run.sh's nohup pid as $nohup_pid"

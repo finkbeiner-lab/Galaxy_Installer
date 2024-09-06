@@ -144,7 +144,7 @@ checkout_latest_release
 
 # Start the galaxy.yml in a clean state
 log_info "We're going to back up the existing galaxy.yml, and start fresh. If there are custom configurations you've made, you'll need to copy them back in from the backup."
-start_new_galaxy_config "$GALAXY_CONFIG_PATH" "$(dirname "$GALAXY_CONFIG_PATH")/galaxy.yml.sample"
+start_new_galaxy_config "$GALAXY_CONFIG_FILE" "$(dirname "$GALAXY_CONFIG_FILE")/galaxy.yml.sample"
 if [ $? -ne 0 ]; then
     log_error "Unable to create a new clean galaxy.yml config file. There may be permissions issues or an issue with this install project."
     exit 1
