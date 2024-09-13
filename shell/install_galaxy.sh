@@ -38,15 +38,15 @@ configure_galaxy_for_conda() {
 
 # Function to configure Galaxy admin user details in the Galaxy configuration
 configure_galaxy_admin_user() {
+    # Temporary testing, remove
     log_error "Making change to welcome_url field for testing..."
     change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.welcome_url" "http://www.froctopus.com/"
-    log_info "Configuring Galaxy admin user..."
-    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_users" "$DEFAULT_GALAXY_ADMIN_EMAIL"
-    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_password" "$DEFAULT_GALAXY_ADMIN_STARING_PW"
-    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY"
-    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.admin_user_name" "$DEFAULT_GALAXY_ADMIN_NAME"
+    # Set the bootstrap admin API key
+    log_info "Setting bootstrap admin API key for bootstrapping admin user..."
+    change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.bootstrap_admin_api_key" "$DEFAULT_GALAXY_ADMIN_API_KEY"
+    # Set the Conda prefix for dependency resolution
     change_galaxy_config "$GALAXY_CONFIG_FILE" "galaxy.conda.prefix" "/Users/benjaminbrumbaugh/miniconda3"
-    
+    # Check if any errors occurred during configuration
     if [ $? -ne 0 ]; then
         log_error "Failed to configure Galaxy admin user details in $GALAXY_CONFIG_FILE."
         exit 1
